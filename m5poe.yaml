@@ -1,0 +1,133 @@
+esphome:
+  name: m5poe
+  friendly_name: m5poe
+
+esp32:
+  board: m5stack-core-esp32
+  framework:
+    type: arduino
+
+logger:
+  baud_rate: 0
+api:
+  encryption:
+        key: !secret api_encryption_key
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+
+ethernet:
+  type: IP101
+  mdc_pin: GPIO23
+  mdio_pin: GPIO18
+  clk:
+    pin: GPIO0
+    mode: CLK_EXT_IN
+  phy_addr: 1
+  power_pin: GPIO5
+
+uart:
+  id: daikin_uart
+  rx_pin: GPIO3
+  tx_pin: GPIO1
+  baud_rate: 9600
+  parity: EVEN
+  stop_bits: 1
+  #debug:
+  #  direction: BOTH
+  #  dummy_receiver: true
+  #  after:
+  #    bytes: 16
+
+external_components:
+  - source:
+      type: local
+      path: components
+# Unit-4Relay uses I2C + external component (M5Stack)
+  - source: github://m5stack/esphome-yaml/components@main
+    components: unit4relay
+    refresh: 1d
+
+# PoESP32: I2C uses GPIO16/17 
+i2c:
+  sda: GPIO16
+  scl: GPIO17
+  scan: true
+
+unit4relay:
+
+# Interne relais (mag je ook hide-en in HA)
+switch:
+  - platform: unit4relay
+    relay_1:
+      id: r1
+      internal: true
+      restore_mode: RESTORE_DEFAULT_OFF
+    relay_2:
+      id: r2
+      internal: true
+      restore_mode: RESTORE_DEFAULT_OFF
+    relay_3:
+      id: r3
+      internal: true
+      restore_mode: RESTORE_DEFAULT_OFF
+    relay_4:
+      id: r4
+      internal: true
+      restore_mode: RESTORE_DEFAULT_OFF
+
+select:
+  - platform: template
+    name: "Heatpump mode"
+    id: hp_mode
+    optimistic: true
+    options:
+      - "Off"
+      - "Cooling"
+      - "Heating"
+    initial_option: "Off"
+    set_action:
+      - lambda: |-
+          // Eerst veilig alles uit
+          id(r1).turn_off();
+          id(r2).turn_off();
+
+          if (x == "Off") {
+            // r1=0 r2=0
+          } else if (x == "Cooling") {
+            id(r1).turn_on();   // r1=1 r2=0
+          } else if (x == "Heating") {
+            id(r2).turn_on();   // r1=0 r2=1
+          }
+
+  - platform: template
+    name: "Heatpump smartgrid"
+    id: hp_sg
+    optimistic: true
+    options:
+      - "Free running"
+      - "Forced off"
+      - "Recommended on"
+      - "Forced on"
+    initial_option: "Free running"
+    set_action:
+      - lambda: |-
+          // Eerst veilig alles uit
+          id(r3).turn_off();
+          id(r4).turn_off();
+
+          if (x == "Free running") {
+            // r3=0 r4=0
+          } else if (x == "Forced off") {
+            id(r4).turn_on();   // r3=0 r4=1
+          } else if (x == "Recommended on") {
+            id(r3).turn_on();   // r3=1 r4=0
+          } else if (x == "Forced on") {
+            id(r3).turn_on();   // r3=1 r4=1
+            id(r4).turn_on();
+          }
+
+daikin_x10a:
+  uart_id: daikin_uart
