@@ -43,12 +43,17 @@ uart:
 
 external_components:
   - source:
-      type: local
+      type: git
+      url: https://github.com/Dennis3321/ESPHomePoeAlterma
+      ref: main
       path: components
+    components: [ daikin_x10a ]
+
 # Unit-4Relay uses I2C + external component (M5Stack)
   - source: github://m5stack/esphome-yaml/components@main
     components: unit4relay
     refresh: 1d
+
 
 # PoESP32: I2C uses GPIO16/17 
 i2c:
