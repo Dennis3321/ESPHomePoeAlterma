@@ -1,7 +1,6 @@
 # ESP Home POE Daikin Alterma
 
-## Jan 2026 \- D. Smith
-
+## Jan 2026 \- Dennis
 # 
 
 [**What it does;	1**](#what-it-does;)
