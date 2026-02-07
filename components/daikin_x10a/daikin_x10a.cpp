@@ -112,6 +112,7 @@ void DaikinX10A::process_frame_(daikin_package &pkg) {
   uint8_t registry_id = b[1];     // Protocol I: registry ID at position 1
   unsigned base_offset = 3;       // Data starts at position 3 (after: 0x40, registry_id, length)
 
+  
   ESP_LOGI("ESPoeDaikin", "Decode registry_id=%d (0x%02X) base_offset=%u", (int)registry_id, registry_id, base_offset);
 
   pkg.convert_registry_values(registry_id, base_offset);
