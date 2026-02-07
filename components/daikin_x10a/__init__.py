@@ -11,6 +11,7 @@ CONF_UART_ID = "uart_id"
 CONF_REGISTERS = "registers"
 
 REGISTER_SCHEMA = cv.Schema({
+    cv.Required("mode"): cv.int_,
     cv.Required("convid"): cv.hex_int,
     cv.Required("offset"): cv.int_,
     cv.Required("registryID"): cv.int_,
