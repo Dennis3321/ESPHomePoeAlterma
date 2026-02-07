@@ -34,6 +34,7 @@ class DaikinX10A : public uart::UARTDevice, public Component {
   virtual ~DaikinX10A();
     void loop() override;
     void queryRegistry(uint8_t regID);
+    void add_register(int mode, int convid, int offset, int registryID,int dataSize, int dataType, const char* label);
 
  protected:
   std::vector<uint8_t> buffer_;
