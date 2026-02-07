@@ -75,6 +75,7 @@ class daikin_package {
   // Converteer alle regels in registers[] die bij registry_id horen.
   // base_offset = vanaf waar de echte data bytes beginnen in buf_.
   void convert_registry_values(uint8_t registry_id, unsigned int base_offset) {
+    ESP_LOGI("ESPoeDaikin", "convert_registry_values: registry_id = %d (hex: 0x%02X)", (int)registry_id, registry_id);
     for (auto &reg : registers) {
       if (static_cast<uint8_t>(reg.registryID) != registry_id) continue;
 
