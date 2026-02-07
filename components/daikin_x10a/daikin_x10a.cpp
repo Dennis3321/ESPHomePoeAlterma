@@ -109,13 +109,11 @@ void DaikinX10A::process_frame_(daikin_package &pkg) {
   const auto &b = pkg.buffer();
   if (b.size() < 6) return;
 
-  uint8_t registry_id = b[1];     // Protocol I: registry ID at position 1
-  unsigned base_offset = 3;       // Data starts at position 3 (after: 0x40, registry_id, length)
+  uint8_t registry_id = pkg.registry_id();
 
-  
-  ESP_LOGI("ESPoeDaikin", "Decode registry_id=%d (0x%02X) base_offset=%u", (int)registry_id, registry_id, base_offset);
+  ESP_LOGI("ESPoeDaikin", "Decode registry_id=%d (0x%02X)", (int)registry_id, registry_id);
 
-  pkg.convert_registry_values(registry_id, base_offset);
+  pkg.convert_registry_values();  // no parameters needed
 
   // log alle regels die bij deze registry horen (en non-empty asString hebben)
   int count = 0;

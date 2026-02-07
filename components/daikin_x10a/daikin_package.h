@@ -69,17 +69,28 @@ class daikin_package {
 
   Mode mode() const { return mode_; }
 
+  // Protocol I: registry ID at byte position 1
+  uint8_t registry_id() const { 
+    return (buf_.size() > 1) ? buf_[1] : 0; 
+  }
+
+  // Protocol I: data starts at byte position 3 (after: 0x40, registry_id, length)
+  unsigned data_offset() const { 
+    return 3; 
+  }
+
   // =======================================================
   // Converter (op basis van jouw registers[])
   // =======================================================
-  // Converteer alle regels in registers[] die bij registry_id horen.
-  // base_offset = vanaf waar de echte data bytes beginnen in buf_.
-  void convert_registry_values(uint8_t registry_id, unsigned int base_offset) {
-    ESP_LOGI("ESPoeDaikin", "convert_registry_values: registry_id = %d (hex: 0x%02X)", (int)registry_id, registry_id);
+  void convert_registry_values() {
+    uint8_t reg_id = registry_id();
+    unsigned offset = data_offset();
+    
+    ESP_LOGI("ESPoeDaikin", "convert_registry_values: registry_id = %d (hex: 0x%02X)", (int)reg_id, reg_id);
     for (auto &reg : registers) {
-      if (static_cast<uint8_t>(reg.registryID) != registry_id) continue;
+      if (static_cast<uint8_t>(reg.registryID) != reg_id) continue;
 
-      const unsigned int idx  = static_cast<unsigned int>(reg.offset) + base_offset;
+      const unsigned int idx  = static_cast<unsigned int>(reg.offset) + offset;
       const unsigned int need = idx + static_cast<unsigned int>(reg.dataSize);
       if (need > buf_.size()) continue;
 
