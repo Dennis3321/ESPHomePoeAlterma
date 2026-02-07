@@ -8,6 +8,18 @@ CODEOWNERS = ["@local"]
 
 CONF_UART_ID = "uart_id"
 
+CONF_REGISTERS = "registers"
+
+REGISTER_SCHEMA = cv.Schema({
+    cv.Required("convid"): cv.hex_int,
+    cv.Required("offset"): cv.int_,
+    cv.Required("registryID"): cv.int_,
+    cv.Required("dataSize"): cv.int_,
+    cv.Required("dataType"): cv.int_,
+    cv.Required("label"): cv.string,
+})
+
+
 daikin_x10a_ns = cg.esphome_ns.namespace("daikin_x10a")
 DaikinX10A = daikin_x10a_ns.class_("DaikinX10A", cg.Component, uart.UARTDevice)
 
@@ -15,6 +27,8 @@ CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(DaikinX10A),
         cv.Required(CONF_UART_ID): cv.use_id(uart.UARTComponent),
+        cv.Required("mode"): cv.int_,
+        cv.Optional(CONF_REGISTERS): cv.ensure_list(REGISTER_SCHEMA),
     }
 ).extend(cv.COMPONENT_SCHEMA)
 
