@@ -130,5 +130,11 @@ void DaikinX10A::process_frame_(daikin_package &pkg) {
 
 
 
+void DaikinX10A::add_register(int mode, int convid, int offset, int registryID,
+                             int dataSize, int dataType, const char* label) {
+  registers.emplace_back(mode, convid, offset, registryID, dataSize, dataType, label);
+}
+
+
 }  // namespace daikin_x10a
 }  // namespace esphome
