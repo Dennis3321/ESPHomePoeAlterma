@@ -38,7 +38,7 @@ class DaikinX10A : public uart::UARTDevice, public Component {
 
  protected:
   std::vector<uint8_t> buffer_;
-
+  uint8_t last_requested_registry_{0};
 
   void process_frame_(daikin_package &pkg);
 };

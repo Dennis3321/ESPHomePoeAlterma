@@ -24,7 +24,6 @@ daikin_x10a:
     - { mode: 0, registryID: 0x00, offset: 10, convid: 152, dataSize: 1, dataType: -1, label: "O/U MPU ID (xx)" }
     - { mode: 0, registryID: 0x00, offset: 11, convid: 152, dataSize: 1, dataType: -1, label: "O/U MPU ID (yy)" }
     - { mode: 0, registryID: 0x00, offset: 12, convid: 105, dataSize: 1, dataType: -1, label: "O/U capacity (kW)" }
-
     - { mode: 1, registryID: 0x10, offset: 0, convid: 217, dataSize: 1, dataType: -1, label: "Operation Mode" }
     - { mode: 1, registryID: 0x10, offset: 1, convid: 307, dataSize: 1, dataType: -1, label: "Thermostat ON/OFF" }
     - { mode: 0, registryID: 0x10, offset: 1, convid: 306, dataSize: 1, dataType: -1, label: "Restart standby" }
@@ -50,16 +49,13 @@ daikin_x10a:
     - { mode: 0, registryID: 0x10, offset: 12, convid: 310, dataSize: 1, dataType: -1, label: "Fin Temp. Protection Retry Qty" }
     - { mode: 0, registryID: 0x10, offset: 12, convid: 303, dataSize: 1, dataType: -1, label: "Other Drop Control" }
     - { mode: 0, registryID: 0x10, offset: 12, convid: 311, dataSize: 1, dataType: -1, label: "Not in use" }
-
     - { mode: 0, registryID: 0x11, offset: 0, convid: 215, dataSize: 1, dataType: -1, label: "O/U EEPROM (1st digit)" }
     - { mode: 0, registryID: 0x11, offset: 1, convid: 215, dataSize: 1, dataType: -1, label: "O/U EEPROM (3rd 4th digit)" }
     - { mode: 0, registryID: 0x11, offset: 2, convid: 215, dataSize: 1, dataType: -1, label: "O/U EEPROM (5th 6th digit)" }
     - { mode: 0, registryID: 0x11, offset: 3, convid: 215, dataSize: 1, dataType: -1, label: "O/U EEPROM (7th 8th digit)" }
     - { mode: 0, registryID: 0x11, offset: 4, convid: 215, dataSize: 1, dataType: -1, label: "O/U EEPROM (10th digit)" }
     - { mode: 0, registryID: 0x11, offset: 5, convid: 214, dataSize: 1, dataType: -1, label: "O/U EEPROM (11th digit)" }
-
     - { mode: 0, registryID: 0x00, offset: 0, convid: 995, dataSize: 1, dataType: -1, label: "NextDataGrid" }
-
     - { mode: 0, registryID: 0x20, offset: 0, convid: 105, dataSize: 2, dataType: 1, label: "R1T-Outdoor air temp." }
     - { mode: 0, registryID: 0x20, offset: 2, convid: 105, dataSize: 2, dataType: 1, label: "O/U Heat Exch. Temp." }
     - { mode: 0, registryID: 0x20, offset: 4, convid: 105, dataSize: 2, dataType: 1, label: "Discharge pipe temp." }
@@ -70,16 +66,13 @@ daikin_x10a:
     - { mode: 0, registryID: 0x20, offset: 12, convid: 405, dataSize: 2, dataType: 1, label: "High Pressure(T)" }
     - { mode: 0, registryID: 0x20, offset: 14, convid: 105, dataSize: 2, dataType: 2, label: "Low Pressure" }
     - { mode: 0, registryID: 0x20, offset: 14, convid: 405, dataSize: 2, dataType: 1, label: "Low Pressure(T)" }
-
     - { mode: 0, registryID: 0x21, offset: 0, convid: 105, dataSize: 2, dataType: -1, label: "INV primary current (A)" }
     - { mode: 0, registryID: 0x21, offset: 2, convid: 105, dataSize: 2, dataType: -1, label: "INV secondary current (A)" }
     - { mode: 0, registryID: 0x21, offset: 4, convid: 105, dataSize: 2, dataType: 1, label: "INV fin temp." }
     - { mode: 0, registryID: 0x21, offset: 6, convid: 105, dataSize: 2, dataType: 1, label: "Fan1 Fin temp." }
     - { mode: 0, registryID: 0x21, offset: 8, convid: 105, dataSize: 2, dataType: 1, label: "Fan2 Fin temp." }
     - { mode: 0, registryID: 0x21, offset: 10, convid: 105, dataSize: 2, dataType: 1, label: "Compressor outlet temperature" }
-
     - { mode: 0, registryID: 0x00, offset: 0, convid: 995, dataSize: 1, dataType: -1, label: "NextDataGrid" }
-
     - { mode: 0, registryID: 0x30, offset: 0, convid: 152, dataSize: 1, dataType: -1, label: "INV frequency (rps)" }
     - { mode: 0, registryID: 0x30, offset: 1, convid: 211, dataSize: 1, dataType: -1, label: "Fan 1 (step)" }
     - { mode: 0, registryID: 0x30, offset: 2, convid: 211, dataSize: 1, dataType: -1, label: "Fan 2 (step)" }
@@ -92,9 +85,7 @@ daikin_x10a:
     - { mode: 0, registryID: 0x30, offset: 13, convid: 307, dataSize: 1, dataType: -1, label: "Y1S" }
     - { mode: 0, registryID: 0x30, offset: 13, convid: 306, dataSize: 1, dataType: -1, label: "SV (drain pan heater)" }
     - { mode: 0, registryID: 0x30, offset: 13, convid: 305, dataSize: 1, dataType: -1, label: "Y3S" }
-
     - { mode: 0, registryID: 0x00, offset: 0, convid: 998, dataSize: 1, dataType: -1, label: "In-Out separator" }
-
     - { mode: 0, registryID: 0xA0, offset: 0, convid: 119, dataSize: 2, dataType: 1, label: "Suction temp" }
     - { mode: 0, registryID: 0xA0, offset: 2, convid: 119, dataSize: 2, dataType: 1, label: "Outdoor heat exchanger temp." }
     - { mode: 0, registryID: 0xA0, offset: 4, convid: 119, dataSize: 2, dataType: 1, label: "Liquid pipe temp." }
@@ -115,7 +106,6 @@ daikin_x10a:
     - { mode: 0, registryID: 0xA0, offset: 13, convid: 301, dataSize: 1, dataType: -1, label: "Indoor unit blowout 50 ° C flag" }
     - { mode: 0, registryID: 0xA0, offset: 13, convid: 300, dataSize: 1, dataType: -1, label: "Powerful bit (MT setting bit)" }
     - { mode: 0, registryID: 0xA0, offset: 14, convid: 105, dataSize: 2, dataType: 1, label: "Compressor port temperature" }
-
     - { mode: 0, registryID: 0xA1, offset: 0, convid: 119, dataSize: 2, dataType: 1, label: "(Raw data)Water heat exchanger inlet temp." }
     - { mode: 0, registryID: 0xA1, offset: 2, convid: 119, dataSize: 2, dataType: 1, label: "(Raw data)Water heat exchanger outlet temp." }
     - { mode: 0, registryID: 0xA1, offset: 4, convid: 302, dataSize: 1, dataType: -1, label: "Liquid INJ solenoid valve (Y4S)" }
@@ -129,7 +119,6 @@ daikin_x10a:
     - { mode: 0, registryID: 0xA1, offset: 9, convid: 302, dataSize: 1, dataType: -1, label: "GSHP setting" }
     - { mode: 0, registryID: 0xA1, offset: 9, convid: 301, dataSize: 1, dataType: -1, label: "Hydro split setting" }
     - { mode: 0, registryID: 0xA1, offset: 9, convid: 300, dataSize: 1, dataType: -1, label: "Alterma LT setting" }
-
     - { mode: 0, registryID: 0x60, offset: 0, convid: 304, dataSize: 1, dataType: -1, label: "Data Enable/Disable" }
     - { mode: 0, registryID: 0x60, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address" }
     - { mode: 0, registryID: 0x60, offset: 2, convid: 315, dataSize: 1, dataType: -1, label: "I/U operation mode" }
@@ -163,7 +152,6 @@ daikin_x10a:
     - { mode: 0, registryID: 0x60, offset: 15, convid: 215, dataSize: 1, dataType: -1, label: "I/U Software ID (xx)" }
     - { mode: 0, registryID: 0x60, offset: 14, convid: 215, dataSize: 1, dataType: -1, label: "I/U Software ID (yy)" }
     - { mode: 0, registryID: 0x60, offset: 16, convid: 152, dataSize: 1, dataType: -1, label: "I/U EEPROM Ver." }
-
     - { mode: 0, registryID: 0x61, offset: 0, convid: 307, dataSize: 1, dataType: -1, label: "Data Enable/Disable" }
     - { mode: 0, registryID: 0x61, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address" }
     - { mode: 0, registryID: 0x61, offset: 2, convid: 105, dataSize: 2, dataType: 1, label: "Leaving water temp. before BUH (R1T)" }
@@ -173,7 +161,6 @@ daikin_x10a:
     - { mode: 0, registryID: 0x61, offset: 10, convid: 105, dataSize: 2, dataType: 1, label: "DHW tank temp. (R5T)" }
     - { mode: 0, registryID: 0x61, offset: 12, convid: 105, dataSize: 2, dataType: 1, label: "Indoor ambient temp. (R1T)" }
     - { mode: 0, registryID: 0x61, offset: 14, convid: 105, dataSize: 2, dataType: 1, label: "Ext. indoor ambient sensor (R6T)" }
-
     - { mode: 0, registryID: 0x62, offset: 0, convid: 307, dataSize: 1, dataType: -1, label: "Data Enable/Disable" }
     - { mode: 0, registryID: 0x62, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address" }
     - { mode: 0, registryID: 0x62, offset: 2, convid: 307, dataSize: 1, dataType: -1, label: "Reheat ON/OFF" }
@@ -209,7 +196,6 @@ daikin_x10a:
     - { mode: 0, registryID: 0x62, offset: 14, convid: 152, dataSize: 1, dataType: -1, label: "[Future] 3 way Valve Mixing 2" }
     - { mode: 0, registryID: 0x62, offset: 15, convid: 105, dataSize: 2, dataType: 2, label: "Refrigerant pressure sensor" }
     - { mode: 0, registryID: 0x62, offset: 15, convid: 405, dataSize: 2, dataType: 1, label: "Pressure sensor(T)" }
-
     - { mode: 0, registryID: 0x63, offset: 0, convid: 307, dataSize: 1, dataType: -1, label: "Data Enable/Disable" }
     - { mode: 0, registryID: 0x63, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address" }
     - { mode: 0, registryID: 0x63, offset: 2, convid: 215, dataSize: 1, dataType: -1, label: "I/U EEPROM (3rd digit)" }
@@ -228,7 +214,6 @@ daikin_x10a:
     - { mode: 0, registryID: 0x63, offset: 15, convid: 161, dataSize: 1, dataType: -1, label: "Current measured by CT sensor of L2" }
     - { mode: 0, registryID: 0x63, offset: 16, convid: 307, dataSize: 1, dataType: -1, label: "HP Forced FG" }
     - { mode: 0, registryID: 0x63, offset: 16, convid: 161, dataSize: 1, dataType: -1, label: "Current measured by CT sensor of L3" }
-
     - { mode: 0, registryID: 0x64, offset: 0, convid: 307, dataSize: 1, dataType: -1, label: "Data Enable/Disable" }
     - { mode: 0, registryID: 0x64, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address" }
     - { mode: 0, registryID: 0x64, offset: 2, convid: 316, dataSize: 1, dataType: -1, label: "Hybrid Op. Mode" }

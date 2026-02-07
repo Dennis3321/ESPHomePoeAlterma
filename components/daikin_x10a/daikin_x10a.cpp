@@ -100,6 +100,7 @@ void DaikinX10A::queryRegistry(uint8_t regID) {
   }
 
   ESP_LOGI("ESPoeDaikin", "MyDaikinPackage (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.hex_dump().c_str());
+  last_requested_registry_ = regID;
   this->process_frame_(MyDaikinPackage); // of beter: process_frame_(MyDaikinPackage) met overload
 }
 
@@ -109,11 +110,11 @@ void DaikinX10A::process_frame_(daikin_package &pkg) {
   const auto &b = pkg.buffer();
   if (b.size() < 6) return;
 
-  uint8_t registry_id = pkg.registry_id();
+  uint8_t registry_id = last_requested_registry_;
 
-  ESP_LOGI("ESPoeDaikin", "Decode registry_id=%d (0x%02X)", (int)registry_id, registry_id);
+  ESP_LOGI("ESPoeDaikin", "Decode registry_id=%d (0x%02X) base_offset=4", (int)registry_id, registry_id);
 
-  pkg.convert_registry_values();  // no parameters needed
+  pkg.convert_registry_values(registry_id);  // pass the protocol convid
 
   // log alle regels die bij deze registry horen (en non-empty asString hebben)
   int count = 0;
