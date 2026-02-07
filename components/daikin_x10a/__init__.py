@@ -38,3 +38,17 @@ async def to_code(config):
     var = cg.new_Pvariable(config[CONF_ID], uart_comp)
     await cg.register_component(var, config)
     await uart.register_uart_device(var, config)
+
+    if CONF_REGISTERS in config:
+        for r in config[CONF_REGISTERS]:
+            cg.add(
+                var.add_register(
+                    r["mode"],
+                    r["convid"],
+                    r["offset"],
+                    r["registryID"],
+                    r["dataSize"],
+                    r["dataType"],
+                    r["label"],
+                )
+            )
