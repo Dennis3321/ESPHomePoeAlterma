@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <cstdint>
 
 inline constexpr uint32_t REGISTER_SCAN_INTERVAL_MS = 30000;
 
