@@ -13,10 +13,6 @@ class daikin_package {
  public:
   enum class Mode { SEND_REQUEST, RECEIVE };
 
- private:
-  std::vector<uint8_t> packet_buffer;
-  Mode mode_{Mode::RECEIVE};
-
   daikin_package() = default;
   explicit daikin_package(Mode m) : mode_(m) {}
 
@@ -103,6 +99,8 @@ class daikin_package {
   }
 
  private:
+  std::vector<uint8_t> packet_buffer;
+  Mode mode_{Mode::RECEIVE};
 
   // --- CRC ---
   static uint8_t crc_(const uint8_t *src, int len) {
