@@ -2,11 +2,16 @@
 #include "register_definitions.h"
 #include "esphome/core/application.h"
 #include "esphome/core/log.h"
-#include "esphome/components/text_sensor/text_sensor.h"
 #include "daikin_package.h"
 
 #include <vector>
 #include <string>
+
+namespace esphome {
+namespace text_sensor {
+class TextSensor;  // Forward declaration for reinterpret_cast
+}
+}
 
 namespace esphome {
 namespace daikin_x10a {
