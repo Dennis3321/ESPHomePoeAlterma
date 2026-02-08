@@ -8,6 +8,12 @@
 #include <string>
 
 namespace esphome {
+namespace text_sensor {
+class TextSensor;  // Forward declaration for cast
+}
+}
+
+namespace esphome {
 namespace daikin_x10a {
 
 DaikinX10A::~DaikinX10A() = default;
@@ -136,6 +142,23 @@ void DaikinX10A::process_frame_(daikin_package &pkg) {
   }
 
   ESP_LOGI("ESPoeDaikin", "Decoded %d values for registry 0x%02X", count, registry_id);
+  
+  // Publish decoded values to any registered text sensors
+  for (const auto &reg : registers) {
+    if (reg.Mode != 1) continue;  // Only publish readable registers
+    if (reg.asString[0] == '\0') continue;  // Skip empty values
+    
+    for (const auto &sensor_pair : register_sensors_) {
+      if (sensor_pair.first == reg.label) {
+        // Cast void* back to TextSensor* and publish
+        auto *sensor_ptr = static_cast<esphome::text_sensor::TextSensor*>(sensor_pair.second);
+        if (sensor_ptr) {
+          sensor_ptr->publish_state(std::string(reg.asString));
+        }
+        break;
+      }
+    }
+  }
 }
 //________________________________________________________________ process_frame_ end
 
@@ -145,6 +168,14 @@ void DaikinX10A::add_register(int mode, int convid, int offset, int registryID,
   registers.emplace_back(mode, convid, offset, registryID, dataSize, dataType, label);
 }
 //________________________________________________________________ add_register end
+
+//__________________________________________________________________________________________________________________________ set_text_sensor_for_register begin
+void DaikinX10A::set_text_sensor_for_register(const std::string& label, void *sensor) {
+  if (sensor) {
+    register_sensors_.emplace_back(label, sensor);
+  }
+}
+//________________________________________________________________ set_text_sensor_for_register end
 
 //__________________________________________________________________________________________________________________________ get_register_value begin
 std::string DaikinX10A::get_register_value(const std::string& label) const {

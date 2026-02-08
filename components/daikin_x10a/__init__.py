@@ -57,3 +57,12 @@ async def to_code(config):
                     r["label"],
                 )
             )
+            
+            # Auto-create text sensor for mode==1 (readable) registers
+            if r["mode"] == 1:
+                # Create text sensor ID safely
+                sens_id = cg.declare_id(text_sensor.TextSensor)
+                sens = cg.new_Pvariable(sens_id)
+                cg.add(sens.set_name(r["label"]))
+                # Register with component
+                cg.add(var.set_text_sensor_for_register(r["label"], sens))
