@@ -4,12 +4,15 @@
 #include "esphome/core/entity_base.h"      // EntityCategory
 #include "esphome/components/uart/uart.h"
 #include "esphome/components/switch/switch.h"
-#include "esphome/components/text_sensor/text_sensor.h"
 #include <vector>
+#include <string>
 #include "daikin_package.h"
 #include "register_definitions.h"
 
 namespace esphome {
+namespace text_sensor {
+class TextSensor;  // Forward declaration
+}
 namespace daikin_x10a {
 
 class DaikinX10A : public uart::UARTDevice, public Component {
