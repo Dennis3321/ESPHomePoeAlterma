@@ -33,14 +33,15 @@ class DaikinX10A : public uart::UARTDevice, public Component {
   explicit DaikinX10A(uart::UARTComponent *parent) : uart::UARTDevice(parent) {}
   virtual ~DaikinX10A();
     void loop() override;
-    void queryRegistry(uint8_t regID);
+    void FetchRegisters();
     void add_register(int mode, int convid, int offset, int registryID,int dataSize, int dataType, const char* label);
 
  protected:
   std::vector<uint8_t> buffer_;
   uint8_t last_requested_registry_{0};
 
-  void process_frame_(daikin_package &pkg);
+  void FetchRegisters(const Register& selectedRegister);
+  void process_frame_(daikin_package &pkg, const Register& selectedRegister);
 };
 
 }  // namespace daikin_x10a

@@ -32,15 +32,8 @@ void DaikinX10A::loop() {
   }
 
   if (millis() - start >= REGISTER_SCAN_INTERVAL_MS) {
-    start = millis();  // vóór de queries
-
-    for (const auto& reg : registers) {
-      if (reg.Mode == 1) {
-        this->queryRegistry(reg.registryID);
-
-        // decode
-      }
-    }
+    start = millis();
+    this->FetchRegisters();
   }
 }
 
@@ -50,67 +43,75 @@ void DaikinX10A::loop() {
 
 
                  
-void DaikinX10A::queryRegistry(uint8_t regID) {
-  auto MyDaikinRequestPackage = daikin_package::MakeRequest(regID);
 
-  ESP_LOGI("ESPoeDaikin", "TX (%u): %s", (unsigned)MyDaikinRequestPackage.size(), MyDaikinRequestPackage.hex_dump().c_str());
 
-  this->flush();
-  for (uint8_t b : MyDaikinRequestPackage.buffer()) this->write(b);  // for each every byte in the buffer, send the request bytes via de UART
+void DaikinX10A::FetchRegisters() {
+  //____________________________________
+  for (const auto& selectedRegister : registers) {
+    if (selectedRegister.Mode == 1) {
+      auto MyDaikinRequestPackage = daikin_package::MakeRequest(selectedRegister.registryID);
 
-  daikin_package MyDaikinPackage(daikin_package::Mode::RECEIVE);  // create a new receive package
+      ESP_LOGI("ESPoeDaikin", "TX (%u): %s", (unsigned)MyDaikinRequestPackage.size(), MyDaikinRequestPackage.hex_dump().c_str());
 
-  const uint32_t start_ms = millis();
+      this->flush();
+      for (uint8_t b : MyDaikinRequestPackage.buffer()) this->write(b);  // for each every byte in the buffer, send the request bytes via de UART
 
-  size_t IncommingPackageSize = 3; // until we know expected_size()
-  while (millis() - start_ms < Serial_TimeoutInMilliseconds) {
-    while (this->available()) {
-      uint8_t b;
-      this->read_byte(&b);
+      daikin_package MyDaikinPackage(daikin_package::Mode::RECEIVE);  // create a new receive package
 
-      // your original rule: first byte must be 0x40 (otherwise skip)
-      if (MyDaikinPackage.empty() && b != 0x40) continue;
+      const uint32_t start_ms = millis();
 
-      MyDaikinPackage.buffer_mut().push_back(b);
+      size_t IncommingPackageSize = 3; // until we know expected_size()
+      while (millis() - start_ms < Serial_TimeoutInMilliseconds) {
+        while (this->available()) {
+          uint8_t b;
+          this->read_byte(&b);
 
-      // once we have 3 bytes, we know full length
-      if (MyDaikinPackage.has_min_header()) {
-        const size_t exp = MyDaikinPackage.expected_size();
-        if (exp > 0) IncommingPackageSize = exp;
+          // your original rule: first byte must be 0x40 (otherwise skip)
+          if (MyDaikinPackage.empty() && b != 0x40) continue;
+
+          MyDaikinPackage.buffer_mut().push_back(b);
+
+          // once we have 3 bytes, we know full length
+          if (MyDaikinPackage.has_min_header()) {
+            const size_t exp = MyDaikinPackage.expected_size();
+            if (exp > 0) IncommingPackageSize = exp;
+          }
+
+          // early error detection (optional)
+          if (MyDaikinPackage.is_error_frame()) {
+            ESP_LOGI("ESPoeDaikin", "HP returned error frame: %s", MyDaikinPackage.hex_dump().c_str());
+            return;
+          }
+
+          if (MyDaikinPackage.size() >= IncommingPackageSize) break;
+        }
+
+        if (MyDaikinPackage.size() >= IncommingPackageSize) break;
       }
 
-      // early error detection (optional)
-      if (MyDaikinPackage.is_error_frame()) {
-        ESP_LOGI("ESPoeDaikin", "HP returned error frame: %s", MyDaikinPackage.hex_dump().c_str());
+      if (MyDaikinPackage.empty()) return;
+
+      if (!MyDaikinPackage.crc_ok()) {
+        ESP_LOGI("ESPoeDaikin", "CRC mismatch (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.hex_dump().c_str());
+        delay(250);
         return;
       }
 
-      if (MyDaikinPackage.size() >= IncommingPackageSize) break;
+      ESP_LOGI("ESPoeDaikin", "MyDaikinPackage (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.hex_dump().c_str());
+      last_requested_registry_ = selectedRegister.registryID;
+      this->process_frame_(MyDaikinPackage, selectedRegister); // of beter: process_frame_(MyDaikinPackage) met overload
     }
-
-    if (MyDaikinPackage.size() >= IncommingPackageSize) break;
   }
-
-  if (MyDaikinPackage.empty()) return;
-
-  if (!MyDaikinPackage.crc_ok()) {
-    ESP_LOGI("ESPoeDaikin", "CRC mismatch (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.hex_dump().c_str());
-    delay(250);
-    return;
-  }
-
-  ESP_LOGI("ESPoeDaikin", "MyDaikinPackage (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.hex_dump().c_str());
-  last_requested_registry_ = regID;
-  this->process_frame_(MyDaikinPackage); // of beter: process_frame_(MyDaikinPackage) met overload
+  //____________________________________
 }
 
-void DaikinX10A::process_frame_(daikin_package &pkg) {
+void DaikinX10A::process_frame_(daikin_package &pkg, const Register& selectedRegister) {
   if (!pkg.is_valid_protocol() || !pkg.crc_ok() || pkg.is_error_frame()) return;
 
   const auto &b = pkg.buffer();
   if (b.size() < 6) return;
 
-  uint8_t registry_id = last_requested_registry_;
+  uint8_t registry_id = selectedRegister.registryID;
 
   ESP_LOGI("ESPoeDaikin", "Decode registry_id=%d (0x%02X) base_offset=4", (int)registry_id, registry_id);
 
