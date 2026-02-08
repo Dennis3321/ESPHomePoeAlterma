@@ -104,7 +104,7 @@ void DaikinX10A::FetchRegisters() {
 
       ESP_LOGI("ESPoeDaikin", "MyDaikinPackage (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.ToHexString().c_str());
       last_requested_registry_ = selectedRegister.registryID;
-      this->process_frame_(MyDaikinPackage, selectedRegister);
+      this->process_frame_(MyDaikinPackage);
     } // if mode==1
 
   } //____________________________________ end for loop loop over all registers
@@ -113,13 +113,14 @@ void DaikinX10A::FetchRegisters() {
 //________________________________________________________________ FetchRegisters end
 
 //__________________________________________________________________________________________________________________________ process_frame_ begin
-void DaikinX10A::process_frame_(daikin_package &pkg, const Register& selectedRegister) {
+void DaikinX10A::process_frame_(daikin_package &pkg) {
   if (!pkg.is_valid_protocol() || !pkg.Valid_CRC() || pkg.is_error_frame()) return;
 
   const auto &buffer = pkg.buffer();
   if (buffer.size() < 6) return;
 
-  uint8_t registry_id = selectedRegister.registryID;
+  // Registry ID is at byte 1
+  uint8_t registry_id = buffer[1];
 
   ESP_LOGI("ESPoeDaikin", "Decode registry_id=%d (0x%02X), protocol_header=3_bytes (0x40, regID, length), data_starts_at_byte_3", (int)registry_id, registry_id);
 
@@ -136,8 +137,18 @@ void DaikinX10A::process_frame_(daikin_package &pkg, const Register& selectedReg
 
   ESP_LOGI("ESPoeDaikin", "Decoded %d values for registry 0x%02X", count, registry_id);
   
-  // Publish all register values to Home Assistant
-  this->publish_register_values_();
+  // Publish decoded values to any registered text sensors
+  for (const auto &reg : registers) {
+    if (reg.Mode != 1) continue;  // Only published readable registers
+    if (reg.asString[0] == '\0') continue;  // Skip empty values
+    
+    for (const auto &sensor_pair : register_sensors_) {
+      if (sensor_pair.first == reg.label) {
+        sensor_pair.second->publish_state(std::string(reg.asString));
+        break;
+      }
+    }
+  }
 }
 //________________________________________________________________ process_frame_ end
 
@@ -148,29 +159,24 @@ void DaikinX10A::add_register(int mode, int convid, int offset, int registryID,
 }
 //________________________________________________________________ add_register end
 
-//__________________________________________________________________________________________________________________________ set_text_sensor begin
-void DaikinX10A::set_text_sensor(const char* label, text_sensor::TextSensor *sensor) {
-  if (label && sensor) {
-    text_sensors_.emplace_back(std::string(label), sensor);
+//__________________________________________________________________________________________________________________________ set_text_sensor_for_register begin
+void DaikinX10A::set_text_sensor_for_register(const std::string& label, text_sensor::TextSensor *sensor) {
+  if (sensor) {
+    register_sensors_.emplace_back(label, sensor);
   }
 }
-//________________________________________________________________ set_text_sensor end
+//________________________________________________________________ set_text_sensor_for_register end
 
-//__________________________________________________________________________________________________________________________ publish_register_values_ begin
-void DaikinX10A::publish_register_values_() {
+//__________________________________________________________________________________________________________________________ get_register_value begin
+std::string DaikinX10A::get_register_value(const std::string& label) const {
   for (const auto &reg : registers) {
-    if (reg.Mode != 1) continue;  // Only publish readable registers
-    if (reg.asString[0] == '\0') continue;  // Skip empty values
-    
-    for (const auto &sensor_pair : text_sensors_) {
-      if (sensor_pair.first == reg.label) {
-        sensor_pair.second->publish_state(std::string(reg.asString));
-        break;
-      }
+    if (reg.label && reg.label == label && reg.asString[0] != '\0') {
+      return std::string(reg.asString);
     }
   }
+  return "";  // Return empty string if register not found or value is empty
 }
-//________________________________________________________________ publish_register_values_ end
+//________________________________________________________________ get_register_value end
 
 }  // namespace daikin_x10a
 }  // namespace esphome

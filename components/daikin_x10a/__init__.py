@@ -7,7 +7,6 @@ DEPENDENCIES = ["uart"]
 CODEOWNERS = ["@local"]
 
 CONF_UART_ID = "uart_id"
-
 CONF_REGISTERS = "registers"
 
 REGISTER_SCHEMA = cv.Schema({
@@ -20,9 +19,15 @@ REGISTER_SCHEMA = cv.Schema({
     cv.Required("label"): cv.string,
 })
 
-
 daikin_x10a_ns = cg.esphome_ns.namespace("daikin_x10a")
 DaikinX10A = daikin_x10a_ns.class_("DaikinX10A", cg.Component, uart.UARTDevice)
+
+# Expose the method so template sensors can use it
+DaikinX10A.add_method(
+    "get_register_value",
+    cg.std_string,
+    [cg.std_string],
+)
 
 CONFIG_SCHEMA = cv.Schema(
     {
@@ -52,10 +57,3 @@ async def to_code(config):
                     r["label"],
                 )
             )
-            
-            # Create a text_sensor for readable registers (mode == 1)
-            if r["mode"] == 1:
-                sensor = cg.new_Pvariable(cg.RawExpression(f'new esphome::text_sensor::TextSensor()'))
-                cg.add(sensor.set_name(r["label"]))
-                await text_sensor.register_text_sensor(sensor, {})
-                cg.add(var.set_text_sensor(r["label"], sensor))
