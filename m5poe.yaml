@@ -140,22 +140,3 @@ select:
 daikin_x10a:
   id: daikin_comp
   uart_id: daikin_uart
-
-text_sensor:
-  - platform: template
-    id: daikin_operation_mode
-    name: "Daikin Operation Mode"
-    lambda: 'return id(daikin_comp).get_register_value("Operation Mode");'
-    update_interval: 35s
-    
-  - platform: template
-    id: daikin_thermostat
-    name: "Daikin Thermostat"
-    lambda: 'return id(daikin_comp).get_register_value("Thermostat ON/OFF");'
-    update_interval: 35s
-
-  - platform: template
-    id: test_lambda
-    name: "Test Lambda"
-    lambda: 'return "TEST_VALUE";'
-    update_interval: 5s
