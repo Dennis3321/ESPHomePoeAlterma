@@ -1,6 +1,6 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import uart
+from esphome.components import uart, text_sensor
 from esphome.const import CONF_ID
 
 DEPENDENCIES = ["uart"]
@@ -52,3 +52,10 @@ async def to_code(config):
                     r["label"],
                 )
             )
+            
+            # Create a text_sensor for readable registers (mode == 1)
+            if r["mode"] == 1:
+                sensor = cg.new_Pvariable(cg.RawExpression(f'new esphome::text_sensor::TextSensor()'))
+                cg.add(sensor.set_name(r["label"]))
+                await text_sensor.register_text_sensor(sensor, {})
+                cg.add(var.set_text_sensor(r["label"], sensor))
