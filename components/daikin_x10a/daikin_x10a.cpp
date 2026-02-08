@@ -105,7 +105,7 @@ void DaikinX10A::process_frame_(daikin_package &pkg, const Register& selectedReg
 
   uint8_t registry_id = selectedRegister.registryID;
 
-  ESP_LOGI("ESPoeDaikin", "Decode registry_id=%d (0x%02X) base_offset=4", (int)registry_id, registry_id);
+  ESP_LOGI("ESPoeDaikin", "Decode registry_id=%d (0x%02X), protocol_header=3_bytes (0x40, regID, length), data_starts_at_byte_3", (int)registry_id, registry_id);
 
   pkg.convert_registry_values(registry_id);  // pass the protocol convid
 

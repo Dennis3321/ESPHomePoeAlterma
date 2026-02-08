@@ -85,7 +85,7 @@ class daikin_package {
   void convert_registry_values(uint8_t reg_id) {
     unsigned offset = data_offset();
     
-    ESP_LOGI("ESPoeDaikin", "convert_registry_values: registry_id = %d (hex: 0x%02X)", (int)reg_id, reg_id);
+    ESP_LOGI("ESPoeDaikin", "convert_registry_values: registry_id = %d (hex: 0x%02X), data_offset = %u", (int)reg_id, reg_id, offset);
     for (auto &reg : registers) {
       if (static_cast<uint8_t>(reg.registryID) != reg_id) continue;
 
@@ -94,6 +94,8 @@ class daikin_package {
       if (need > packet_buffer.size()) continue;
 
       const uint8_t *input = &packet_buffer[idx];
+      ESP_LOGI("ESPoeDaikin", "  Processing %s: offset=%d, idx=%u, byte_at_idx=0x%02X", 
+               reg.label, reg.offset, idx, packet_buffer[idx]);
       convert_one_(reg, input);
     }
   }
@@ -199,6 +201,7 @@ class daikin_package {
       "UseStrdThrm(ht)1","UseStrdThrm(ht)2","UseStrdThrm(ht)3","UseStrdThrm(ht)4"
     };
     int idx = (int)data[0];
+    ESP_LOGI("ESPoeDaikin", "  convertTable217_: raw_byte=0x%02X (decimal %d), array_size=%d", data[0], idx, (int)(sizeof(r217) / sizeof(r217[0])));
     if (idx >= 0 && idx < (int)(sizeof(r217) / sizeof(r217[0]))) strcpy(ret, r217[idx]);
     else strcpy(ret, "-");
   }
