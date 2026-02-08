@@ -10,11 +10,12 @@
 #include "register_definitions.h"  // Register + registers[]
 
 class daikin_package {
+ public:
   enum class Mode { SEND_REQUEST, RECEIVE };
+
+ private:
   std::vector<uint8_t> packet_buffer;
   Mode mode_{Mode::RECEIVE};
-
- public:
 
   daikin_package() = default;
   explicit daikin_package(Mode m) : mode_(m) {}
@@ -96,7 +97,7 @@ class daikin_package {
       const unsigned int need = idx + static_cast<unsigned int>(reg.dataSize);
       if (need > packet_buffer.size()) continue;
 
-      const uint8_t *input = &buf_[idx];
+      const uint8_t *input = &packet_buffer[idx];
       convert_one_(reg, input);
     }
   }
