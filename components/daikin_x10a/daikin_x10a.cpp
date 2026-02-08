@@ -36,7 +36,18 @@ void DaikinX10A::loop() {
 
 //__________________________________________________________________________________________________________________________ FetchRegisters begin
 // FetchRegisters() is called every REGISTER_SCAN_INTERVAL_MS milliseconds, and loops over all registers with Mode==1 (read) to fetch their values from the HP via UART
-void DaikinX10A::FetchRegisters() {     
+void DaikinX10A::FetchRegisters() {
+  
+  // Clear any stale data in the RX buffer before we start
+  uint8_t dummy_byte;
+  int stale_byte_count = 0;
+  while (this->available() && stale_byte_count < 100) {
+    this->read_byte(&dummy_byte);
+    stale_byte_count++;
+  }
+  if (stale_byte_count > 0) {
+    ESP_LOGI("ESPoeDaikin", "Cleared %d stale bytes from RX buffer", stale_byte_count);
+  }
   
   for (const auto& selectedRegister : registers) {  //____________________________________ loop over all registers
     if (selectedRegister.Mode == 1) {
@@ -84,6 +95,14 @@ void DaikinX10A::FetchRegisters() {
         ESP_LOGI("ESPoeDaikin", "CRC mismatch (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.ToHexString().c_str());
         delay(250);
         return;
+      }
+
+      // Validate that the response is from the requested registry
+      uint8_t received_registry_id = MyDaikinPackage.registry_id();
+      if (received_registry_id != selectedRegister.registryID) {
+        ESP_LOGI("ESPoeDaikin", "Registry mismatch: requested=0x%02X, received=0x%02X. Skipping this request.", 
+                 selectedRegister.registryID, received_registry_id);
+        continue;  // Skip this register and move to the next one
       }
 
       ESP_LOGI("ESPoeDaikin", "MyDaikinPackage (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.ToHexString().c_str());
