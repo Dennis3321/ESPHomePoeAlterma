@@ -153,3 +153,9 @@ text_sensor:
     name: "Daikin Thermostat"
     lambda: 'return id(daikin_comp).get_register_value("Thermostat ON/OFF");'
     update_interval: 35s
+
+  - platform: template
+    id: test_lambda
+    name: "Test Lambda"
+    lambda: 'return "TEST_VALUE";'
+    update_interval: 5s
