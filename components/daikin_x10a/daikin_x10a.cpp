@@ -2,6 +2,7 @@
 #include "register_definitions.h"
 #include "esphome/core/application.h"
 #include "esphome/core/log.h"
+#include "esphome/components/text_sensor/text_sensor.h"
 #include "daikin_package.h"
 
 #include <vector>
@@ -144,7 +145,10 @@ void DaikinX10A::process_frame_(daikin_package &pkg) {
     
     for (const auto &sensor_pair : register_sensors_) {
       if (sensor_pair.first == reg.label) {
-        sensor_pair.second->publish_state(std::string(reg.asString));
+        auto *sensor = reinterpret_cast<text_sensor::TextSensor*>(sensor_pair.second);
+        if (sensor) {
+          sensor->publish_state(std::string(reg.asString));
+        }
         break;
       }
     }
@@ -160,7 +164,7 @@ void DaikinX10A::add_register(int mode, int convid, int offset, int registryID,
 //________________________________________________________________ add_register end
 
 //__________________________________________________________________________________________________________________________ set_text_sensor_for_register begin
-void DaikinX10A::set_text_sensor_for_register(const std::string& label, text_sensor::TextSensor *sensor) {
+void DaikinX10A::set_text_sensor_for_register(const std::string& label, void *sensor) {
   if (sensor) {
     register_sensors_.emplace_back(label, sensor);
   }
