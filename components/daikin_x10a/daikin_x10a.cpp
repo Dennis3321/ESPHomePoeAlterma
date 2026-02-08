@@ -38,17 +38,6 @@ void DaikinX10A::loop() {
 // FetchRegisters() is called every REGISTER_SCAN_INTERVAL_MS milliseconds, and loops over all registers with Mode==1 (read) to fetch their values from the HP via UART
 void DaikinX10A::FetchRegisters() {
   
-  // Clear any stale data in the RX buffer before we start
-  uint8_t dummy_byte;
-  int stale_byte_count = 0;
-  while (this->available() && stale_byte_count < 100) {
-    this->read_byte(&dummy_byte);
-    stale_byte_count++;
-  }
-  if (stale_byte_count > 0) {
-    ESP_LOGI("ESPoeDaikin", "Cleared %d stale bytes from RX buffer", stale_byte_count);
-  }
-  
   for (const auto& selectedRegister : registers) {  //____________________________________ loop over all registers
     if (selectedRegister.Mode == 1) {
       auto MyDaikinRequestPackage = daikin_package::MakeRequest(selectedRegister.registryID);
@@ -56,58 +45,66 @@ void DaikinX10A::FetchRegisters() {
       ESP_LOGI("ESPoeDaikin", "TX (%u): %s", (unsigned)MyDaikinRequestPackage.size(), MyDaikinRequestPackage.ToHexString().c_str());
 
       this->flush();  // Clear the serial buffer before sending
-      for (uint8_t requestByte : MyDaikinRequestPackage.buffer()) this->write(requestByte);  // for each every byte in the buffer, send the request bytes via de UART
+      for (uint8_t requestByte : MyDaikinRequestPackage.buffer()) this->write(requestByte);
 
-      daikin_package MyDaikinPackage(daikin_package::Mode::RECEIVE);  // create a new receive MyDaikinPackage
+      daikin_package MyDaikinPackage(daikin_package::Mode::RECEIVE);
 
       const uint32_t FetchRegistersStartMilliseconds = millis();
-
-      size_t IncommingPackageSize = 3; // until we know expected_size()
+      size_t IncommingPackageSize = 3;
+      uint8_t target_registry = selectedRegister.registryID;
+      
+      // Retry loop: keep reading until we get the CORRECT registry response or timeout
       while (millis() - FetchRegistersStartMilliseconds < Serial_TimeoutInMilliseconds) {
-        if (!this->available()) continue;  // No data available, try again on next loop
+        if (!this->available()) continue;
         
-        uint8_t incomingByte;  // create a variable to hold the incoming byte
-        this->read_byte(&incomingByte);  // read a byte from the UART into variable incomingByte
+        uint8_t incomingByte;
+        this->read_byte(&incomingByte);
 
-        // your original rule: first byte must be 0x40 (otherwise skip)
+        // Skip if not protocol marker (0x40)
         if (MyDaikinPackage.empty() && incomingByte != 0x40) continue;
 
         MyDaikinPackage.buffer_mut().push_back(incomingByte);
 
-        // once we have 3 bytes, we know full length
+        // Once we have 2 bytes, check if it's the right registry
+        if (MyDaikinPackage.size() == 2) {
+          uint8_t received_registry = MyDaikinPackage.buffer()[1];
+          if (received_registry != target_registry) {
+            // Wrong registry - discard this packet and wait for the right one
+            ESP_LOGI("ESPoeDaikin", "  Received registry 0x%02X (expected 0x%02X), discarding...", received_registry, target_registry);
+            MyDaikinPackage.clear();
+            continue;
+          }
+        }
+
+        // Once we have 3 bytes, we know the full length
         if (MyDaikinPackage.HasMinimalHeader()) {
           const size_t expectedSize = MyDaikinPackage.expected_size();
           if (expectedSize > 0) IncommingPackageSize = expectedSize;
         }
 
-        // early error detection (optional)
+        // Early error detection
         if (MyDaikinPackage.is_error_frame()) {
           ESP_LOGI("ESPoeDaikin", "HP returned error frame: %s", MyDaikinPackage.ToHexString().c_str());
           return;
         }
 
+        // Check if we have complete packet
         if (MyDaikinPackage.size() >= IncommingPackageSize) break;
       }
 
-      if (MyDaikinPackage.empty()) return;
+      if (MyDaikinPackage.empty()) {
+        ESP_LOGI("ESPoeDaikin", "No valid response for registry 0x%02X (timeout)", target_registry);
+        continue;
+      }
 
       if (!MyDaikinPackage.Valid_CRC()) {
         ESP_LOGI("ESPoeDaikin", "CRC mismatch (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.ToHexString().c_str());
-        delay(250);
-        return;
-      }
-
-      // Validate that the response is from the requested registry
-      uint8_t received_registry_id = MyDaikinPackage.registry_id();
-      if (received_registry_id != selectedRegister.registryID) {
-        ESP_LOGI("ESPoeDaikin", "Registry mismatch: requested=0x%02X, received=0x%02X. Skipping this request.", 
-                 selectedRegister.registryID, received_registry_id);
-        continue;  // Skip this register and move to the next one
+        continue;
       }
 
       ESP_LOGI("ESPoeDaikin", "MyDaikinPackage (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.ToHexString().c_str());
       last_requested_registry_ = selectedRegister.registryID;
-      this->process_frame_(MyDaikinPackage, selectedRegister); // of beter: process_frame_(MyDaikinPackage) met overload
+      this->process_frame_(MyDaikinPackage, selectedRegister);
     } // if mode==1
 
   } //____________________________________ end for loop loop over all registers
