@@ -231,7 +231,10 @@ class daikin_package {
       case 102: dblData = (double)getSignedValue_(data, num, 1); break;
       case 103: dblData = (double)getSignedValue_(data, num, 0) / 256.0; break;
       case 104: dblData = (double)getSignedValue_(data, num, 1) / 256.0; break;
-      case 105: dblData = (double)getSignedValue_(data, num, 0) * 0.1; break;
+      case 105: 
+        dblData = (double)getSignedValue_(data, num, 0) * 0.1; 
+        ESP_LOGD("ESPoeDaikin", "    convid 105: bytes[0]=0x%02X bytes[1]=0x%02X → %g°C", data[0], (num > 1 ? data[1] : 0), dblData);
+        break;
       case 106: dblData = (double)getSignedValue_(data, num, 1) * 0.1; break;
 
       case 107:
