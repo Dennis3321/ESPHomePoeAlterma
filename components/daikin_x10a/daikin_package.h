@@ -10,56 +10,59 @@
 #include "register_definitions.h"  // Register + registers[]
 
 class daikin_package {
- public:
   enum class Mode { SEND_REQUEST, RECEIVE };
+  std::vector<uint8_t> packet_buffer;
+  Mode mode_{Mode::RECEIVE};
+
+ public:
 
   daikin_package() = default;
   explicit daikin_package(Mode m) : mode_(m) {}
 
   // --- Factory helpers ---
   static daikin_package MakeRequest(uint8_t reg_id) {
-    daikin_package p(Mode::SEND_REQUEST);
-    p.buf_ = {0x03, 0x40, reg_id, 0x00};
-    p.buf_[3] = crc_(p.buf_.data(), 3);
-    return p;
+    daikin_package MyNewPackage(Mode::SEND_REQUEST);
+    MyNewPackage.packet_buffer = {0x03, 0x40, reg_id, 0x00};
+    MyNewPackage.packet_buffer[3] = crc_(MyNewPackage.packet_buffer.data(), 3);
+    return MyNewPackage;
   }
 
   static daikin_package FromBytes(const std::vector<uint8_t>& bytes) {
-    daikin_package p(Mode::RECEIVE);
-    p.buf_ = bytes;
-    return p;
+    daikin_package MyNewPackage(Mode::RECEIVE);
+    MyNewPackage.packet_buffer = bytes;
+    return MyNewPackage;
   }
 
   // --- Buffer access ---
-  const std::vector<uint8_t>& buffer() const { return buf_; }
-  std::vector<uint8_t>& buffer_mut() { return buf_; }
-  void clear() { buf_.clear(); }
+  const std::vector<uint8_t>& buffer() const { return packet_buffer; }
+  std::vector<uint8_t>& buffer_mut() { return packet_buffer; }
+  void clear() { packet_buffer.clear(); }
 
-  bool empty() const { return buf_.empty(); }
-  size_t size() const { return buf_.size(); }
+  bool empty() const { return packet_buffer.empty(); }
+  size_t size() const { return packet_buffer.size(); }
 
-  bool has_min_header() const { return buf_.size() >= 3; }
+  bool HasMinimalHeader() const { return packet_buffer.size() >= 3; }
   size_t expected_size() const {
-    if (!has_min_header()) return 0;
-    return static_cast<size_t>(buf_[2]) + 2;
+    if (!HasMinimalHeader()) return 0;
+    return static_cast<size_t>(packet_buffer[2]) + 2;
   }
 
   bool is_error_frame() const {
-    return buf_.size() >= 2 && buf_[0] == 0x15 && buf_[1] == 0xEA;
+    return packet_buffer.size() >= 2 && packet_buffer[0] == 0x15 && packet_buffer[1] == 0xEA;
   }
 
-  bool is_valid_protocol() const { return !buf_.empty() && buf_[0] == 0x40; }
+  bool is_valid_protocol() const { return !packet_buffer.empty() && packet_buffer[0] == 0x40; }
 
-  bool crc_ok() const {
-    if (buf_.size() < 2) return false;
-    const int n = static_cast<int>(buf_.size());
-    return crc_(buf_.data(), n - 1) == buf_[n - 1];
+  bool Valid_CRC() const {
+    if (packet_buffer.size() < 2) return false;
+    const int n = static_cast<int>(packet_buffer.size());
+    return crc_(packet_buffer.data(), n - 1) == packet_buffer[n - 1];
   }
 
-  std::string hex_dump() const {
+  std::string ToHexString() const {
     char b[4];
     std::string out;
-    for (uint8_t c : buf_) {
+    for (uint8_t c : packet_buffer) {
       snprintf(b, sizeof(b), "%02X", c);
       out += b;
       out += ' ';
@@ -71,7 +74,7 @@ class daikin_package {
 
   // Protocol I: registry ID at byte position 1
   uint8_t registry_id() const { 
-    return (buf_.size() > 1) ? buf_[1] : 0; 
+    return (packet_buffer.size() > 1) ? packet_buffer[1] : 0; 
   }
 
   // Protocol I: data starts at byte position 3 (after: 0x40, registry_id, length)
@@ -91,7 +94,7 @@ class daikin_package {
 
       const unsigned int idx  = static_cast<unsigned int>(reg.offset) + offset;
       const unsigned int need = idx + static_cast<unsigned int>(reg.dataSize);
-      if (need > buf_.size()) continue;
+      if (need > packet_buffer.size()) continue;
 
       const uint8_t *input = &buf_[idx];
       convert_one_(reg, input);
@@ -99,6 +102,7 @@ class daikin_package {
   }
 
  private:
+
   // --- CRC ---
   static uint8_t crc_(const uint8_t *src, int len) {
     uint8_t b = 0;
@@ -286,7 +290,4 @@ class daikin_package {
       snprintf(def.asString, sizeof(def.asString), "%g", dblData);
     }
   }
-
-  Mode mode_{Mode::RECEIVE};
-  std::vector<uint8_t> buf_;
 };
