@@ -153,73 +153,73 @@ daikin_x10a:
     - { mode: 1, registryID: 0x61, offset: 12, convid: 105, dataSize: 2, dataType: 1, label: "Indoor ambient temp. (R1T)" }
     - { mode: 1, registryID: 0x61, offset: 14, convid: 105, dataSize: 2, dataType: 1, label: "Ext. indoor ambient sensor (R6T)" }
 
-# sensor:
-#   - platform: template
-#     name: "Leaving water temp. before BUH"
-#     id: r1t_sensor
-#     unit_of_measurement: "°C"
-#     device_class: temperature
-#     lambda: |-
-#       std::string val = id(daikin_comp).get_register_value("Leaving water temp. before BUH (R1T)");
-#       if (val.empty()) return NAN;
-#       return atof(val.c_str());
-#
-#   - platform: template
-#     name: "Leaving water temp. after BUH"
-#     id: r2t_sensor
-#     unit_of_measurement: "°C"
-#     device_class: temperature
-#     lambda: |-
-#       std::string val = id(daikin_comp).get_register_value("Leaving water temp. after BUH (R2T)");
-#       if (val.empty()) return NAN;
-#       return atof(val.c_str());
-#
-#   - platform: template
-#     name: "Refrig. Temp. liquid side"
-#     id: r3t_sensor
-#     unit_of_measurement: "°C"
-#     device_class: temperature
-#     lambda: |-
-#       std::string val = id(daikin_comp).get_register_value("Refrig. Temp. liquid side (R3T)");
-#       if (val.empty()) return NAN;
-#       return atof(val.c_str());
-#
-#   - platform: template
-#     name: "Inlet water temp."
-#     id: r4t_sensor
-#     unit_of_measurement: "°C"
-#     device_class: temperature
-#     lambda: |-
-#       std::string val = id(daikin_comp).get_register_value("Inlet water temp.(R4T)");
-#       if (val.empty()) return NAN;
-#       return atof(val.c_str());
-#
-#   - platform: template
-#     name: "DHW tank temp."
-#     id: r5t_sensor
-#     unit_of_measurement: "°C"
-#     device_class: temperature
-#     lambda: |-
-#       std::string val = id(daikin_comp).get_register_value("DHW tank temp. (R5T)");
-#       if (val.empty()) return NAN;
-#       return atof(val.c_str());
-#
-#   - platform: template
-#     name: "Indoor ambient temp."
-#     id: indoor_temp_sensor
-#     unit_of_measurement: "°C"
-#     device_class: temperature
-#     lambda: |-
-#       std::string val = id(daikin_comp).get_register_value("Indoor ambient temp. (R1T)");
-#       if (val.empty()) return NAN;
-#       return atof(val.c_str());
-#
-#   - platform: template
-#     name: "Ext. indoor ambient sensor"
-#     id: r6t_sensor
-#     unit_of_measurement: "°C"
-#     device_class: temperature
-#     lambda: |-
-#       std::string val = id(daikin_comp).get_register_value("Ext. indoor ambient sensor (R6T)");
-#       if (val.empty()) return NAN;
-#       return atof(val.c_str());
+sensor:
+  - platform: template
+    name: "Leaving water temp. before BUH"
+    id: r1t_sensor
+    unit_of_measurement: "°C"
+    device_class: temperature
+    lambda: |-
+      std::string val = id(daikin_comp).get_register_value("Leaving water temp. before BUH (R1T)");
+      if (val.empty()) return NAN;
+      return atof(val.c_str());
+
+  - platform: template
+    name: "Leaving water temp. after BUH"
+    id: r2t_sensor
+    unit_of_measurement: "°C"
+    device_class: temperature
+    lambda: |-
+      std::string val = id(daikin_comp).get_register_value("Leaving water temp. after BUH (R2T)");
+      if (val.empty()) return NAN;
+      return atof(val.c_str());
+
+  - platform: template
+    name: "Refrig. Temp. liquid side"
+    id: r3t_sensor
+    unit_of_measurement: "°C"
+    device_class: temperature
+    lambda: |-
+      std::string val = id(daikin_comp).get_register_value("Refrig. Temp. liquid side (R3T)");
+      if (val.empty()) return NAN;
+      return atof(val.c_str());
+
+  - platform: template
+    name: "Inlet water temp."
+    id: r4t_sensor
+    unit_of_measurement: "°C"
+    device_class: temperature
+    lambda: |-
+      std::string val = id(daikin_comp).get_register_value("Inlet water temp.(R4T)");
+      if (val.empty()) return NAN;
+      return atof(val.c_str());
+
+  - platform: template
+    name: "DHW tank temp."
+    id: r5t_sensor
+    unit_of_measurement: "°C"
+    device_class: temperature
+    lambda: |-
+      std::string val = id(daikin_comp).get_register_value("DHW tank temp. (R5T)");
+      if (val.empty()) return NAN;
+      return atof(val.c_str());
+
+  - platform: template
+    name: "Indoor ambient temp."
+    id: indoor_temp_sensor
+    unit_of_measurement: "°C"
+    device_class: temperature
+    lambda: |-
+      std::string val = id(daikin_comp).get_register_value("Indoor ambient temp. (R1T)");
+      if (val.empty()) return NAN;
+      return atof(val.c_str());
+
+  - platform: template
+    name: "Ext. indoor ambient sensor"
+    id: r6t_sensor
+    unit_of_measurement: "°C"
+    device_class: temperature
+    lambda: |-
+      std::string val = id(daikin_comp).get_register_value("Ext. indoor ambient sensor (R6T)");
+      if (val.empty()) return NAN;
+      return atof(val.c_str());
