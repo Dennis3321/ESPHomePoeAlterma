@@ -49,13 +49,13 @@ external_components:
       #ref: 53ea718d957c9cd3fc104be6f3e5ebd900f13192
       path: components
     components: [ daikin_x10a ]
-    refresh: 0s
+    refresh: 5m
 
 
 # Unit-4Relay uses I2C + external component (M5Stack)
   - source: github://m5stack/esphome-yaml/components@main
     components: unit4relay
-    refresh: 0s
+    refresh: 5m
 
 
 # PoESP32: I2C uses GPIO16/17 
