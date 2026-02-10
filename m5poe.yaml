@@ -162,7 +162,7 @@ sensor:
     lambda: |-
       std::string val = id(daikin_comp).get_register_value("Leaving water temp. before BUH (R1T)");
       if (val.empty()) return NAN;
-      try { return std::stof(val); } catch(...) { return NAN; }
+      return atof(val.c_str());
 
   - platform: template
     name: "Leaving water temp. after BUH"
@@ -172,7 +172,7 @@ sensor:
     lambda: |-
       std::string val = id(daikin_comp).get_register_value("Leaving water temp. after BUH (R2T)");
       if (val.empty()) return NAN;
-      try { return std::stof(val); } catch(...) { return NAN; }
+      return atof(val.c_str());
 
   - platform: template
     name: "Refrig. Temp. liquid side"
@@ -182,7 +182,7 @@ sensor:
     lambda: |-
       std::string val = id(daikin_comp).get_register_value("Refrig. Temp. liquid side (R3T)");
       if (val.empty()) return NAN;
-      try { return std::stof(val); } catch(...) { return NAN; }
+      return atof(val.c_str());
 
   - platform: template
     name: "Inlet water temp."
@@ -192,7 +192,7 @@ sensor:
     lambda: |-
       std::string val = id(daikin_comp).get_register_value("Inlet water temp.(R4T)");
       if (val.empty()) return NAN;
-      try { return std::stof(val); } catch(...) { return NAN; }
+      return atof(val.c_str());
 
   - platform: template
     name: "DHW tank temp."
@@ -202,7 +202,7 @@ sensor:
     lambda: |-
       std::string val = id(daikin_comp).get_register_value("DHW tank temp. (R5T)");
       if (val.empty()) return NAN;
-      try { return std::stof(val); } catch(...) { return NAN; }
+      return atof(val.c_str());
 
   - platform: template
     name: "Indoor ambient temp."
@@ -212,7 +212,7 @@ sensor:
     lambda: |-
       std::string val = id(daikin_comp).get_register_value("Indoor ambient temp. (R1T)");
       if (val.empty()) return NAN;
-      try { return std::stof(val); } catch(...) { return NAN; }
+      return atof(val.c_str());
 
   - platform: template
     name: "Ext. indoor ambient sensor"
@@ -222,4 +222,4 @@ sensor:
     lambda: |-
       std::string val = id(daikin_comp).get_register_value("Ext. indoor ambient sensor (R6T)");
       if (val.empty()) return NAN;
-      try { return std::stof(val); } catch(...) { return NAN; }
+      return atof(val.c_str());
