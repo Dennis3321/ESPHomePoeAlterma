@@ -137,6 +137,7 @@ select:
             id(r4).turn_on();
           }
 
+
 daikin_x10a:
   id: daikin_comp
   uart_id: daikin_uart
