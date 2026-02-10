@@ -140,18 +140,6 @@ select:
 daikin_x10a:
   id: daikin_comp
   uart_id: daikin_uart
-  mode: 1
-  registers:
-    # Registry 0x61 - Temperature and status data
-    - { mode: 1, registryID: 0x61, offset: 0, convid: 307, dataSize: 1, dataType: -1, label: "Data Enable/Disable" }
-    - { mode: 1, registryID: 0x61, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address" }
-    - { mode: 1, registryID: 0x61, offset: 2, convid: 105, dataSize: 2, dataType: 1, label: "Leaving water temp. before BUH (R1T)" }
-    - { mode: 1, registryID: 0x61, offset: 4, convid: 105, dataSize: 2, dataType: 1, label: "Leaving water temp. after BUH (R2T)" }
-    - { mode: 1, registryID: 0x61, offset: 6, convid: 105, dataSize: 2, dataType: 1, label: "Refrig. Temp. liquid side (R3T)" }
-    - { mode: 1, registryID: 0x61, offset: 8, convid: 105, dataSize: 2, dataType: 1, label: "Inlet water temp.(R4T)" }
-    - { mode: 1, registryID: 0x61, offset: 10, convid: 105, dataSize: 2, dataType: 1, label: "DHW tank temp. (R5T)" }
-    - { mode: 1, registryID: 0x61, offset: 12, convid: 105, dataSize: 2, dataType: 1, label: "Indoor ambient temp. (R1T)" }
-    - { mode: 1, registryID: 0x61, offset: 14, convid: 105, dataSize: 2, dataType: 1, label: "Ext. indoor ambient sensor (R6T)" }
 
 sensor:
   - platform: template
