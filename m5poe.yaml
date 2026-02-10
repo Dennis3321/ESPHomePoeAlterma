@@ -1,6 +1,7 @@
 esphome:
   name: m5poe
   friendly_name: m5poe
+  # Force refresh: 2026-02-10
 
 esp32:
   board: m5stack-core-esp32
