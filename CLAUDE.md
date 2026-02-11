@@ -180,9 +180,22 @@ Project is designed for specific Daikin models. See README.md for full list of c
 
 ## Building and Flashing
 
+### Development Workflow
+1. **Edit** code in VS Code
+2. **Commit** changes using GitHub Desktop
+3. **Push** to GitHub repository
+4. In **Home Assistant ESPHome**:
+   - Click "Clean" to remove cached external components
+   - Click "Install" to build from GitHub and flash
+
+### First-Time Setup
 1. First flash requires M5Stack ESP32 Downloader Kit (SKU: A105)
 2. Subsequent updates can be done via OTA through Home Assistant
-3. ESPHome auto-pulls component updates from GitHub (5min refresh)
+
+### Component Updates
+- ESPHome auto-pulls component updates from GitHub (5min refresh)
+- Use "Clean" in ESPHome dashboard to force immediate update from GitHub
+- Component is fetched from `external_components` GitHub URL on each build
 
 ## Testing
 

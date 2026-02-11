@@ -38,7 +38,7 @@ DaikinX10A.add_method(
 DaikinX10A.add_method(
     "register_dynamic_sensor",
     cg.void,
-    [cg.std_string, cg.PollingComponent.operator("ptr", sensor.Sensor)],
+    [cg.std_string, sensor.Sensor.operator("ptr")],
 )
 
 # Add method to update dynamic sensors
