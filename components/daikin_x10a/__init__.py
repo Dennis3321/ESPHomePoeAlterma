@@ -80,12 +80,8 @@ async def to_code(config):
 
             # AUTO-CREATE SENSOR for mode=1 registers
             if r["mode"] == 1:
-                # Create unique sensor ID from index and label
-                sensor_id = f"daikin_sensor_{idx}"
-
                 # Create sensor config
                 sensor_conf = {
-                    CONF_ID: sensor_id,
                     "name": r["label"],
                     "unit_of_measurement": UNIT_CELSIUS,
                     "device_class": DEVICE_CLASS_TEMPERATURE,
@@ -93,9 +89,8 @@ async def to_code(config):
                     "accuracy_decimals": 1,
                 }
 
-                # Register the sensor
-                sens = cg.new_Pvariable(sensor_id)
-                await sensor.register_sensor(sens, sensor_conf)
+                # Register the sensor (ESPHome auto-generates ID)
+                sens = await sensor.new_sensor(sensor_conf)
 
                 # Link sensor to component so it can publish updates
                 cg.add(var.register_dynamic_sensor(r["label"], sens))
