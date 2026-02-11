@@ -49,7 +49,7 @@ external_components:
       #ref: 53ea718d957c9cd3fc104be6f3e5ebd900f13192
       path: components
     components: [ daikin_x10a ]
-    refresh: 5min
+    refresh: 0s  # DEVELOPMENT: Always fetch latest from GitHub
 
 
 # Unit-4Relay uses I2C + external component (M5Stack)
