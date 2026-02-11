@@ -7,6 +7,7 @@ from esphome.const import (
     STATE_CLASS_MEASUREMENT,
     UNIT_CELSIUS,
 )
+from esphome.core import ID
 
 DEPENDENCIES = ["uart"]
 CODEOWNERS = ["@local"]
@@ -80,8 +81,21 @@ async def to_code(config):
 
             # AUTO-CREATE SENSOR for mode=1 registers
             if r["mode"] == 1:
+                # Sanitize label for C++ identifier
+                label_sanitized = (r["label"]
+                                  .lower()
+                                  .replace(" ", "_")
+                                  .replace(".", "")
+                                  .replace("(", "")
+                                  .replace(")", "")
+                                  .replace("/", "_"))
+
+                # Create unique ID for this sensor
+                sensor_id = ID(f"daikin_{label_sanitized}", is_declaration=True, type=sensor.Sensor)
+
                 # Create sensor config
                 sensor_conf = {
+                    CONF_ID: sensor_id,
                     "name": r["label"],
                     "unit_of_measurement": UNIT_CELSIUS,
                     "device_class": DEVICE_CLASS_TEMPERATURE,
@@ -89,7 +103,7 @@ async def to_code(config):
                     "accuracy_decimals": 1,
                 }
 
-                # Register the sensor (ESPHome auto-generates ID)
+                # Register the sensor
                 sens = await sensor.new_sensor(sensor_conf)
 
                 # Link sensor to component so it can publish updates
