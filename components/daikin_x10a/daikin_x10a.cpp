@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <string>
+#include <set>
 #include <cstdlib>  // for atof
 
 namespace esphome {
@@ -38,9 +39,18 @@ void DaikinX10A::loop() {
 //__________________________________________________________________________________________________________________________ FetchRegisters begin
 // FetchRegisters() is called every REGISTER_SCAN_INTERVAL_MS milliseconds, and loops over all registers with Mode==1 (read) to fetch their values from the HP via UART
 void DaikinX10A::FetchRegisters() {
-  
+  std::set<uint8_t> fetched_registries;  // Track which registryIDs we've already requested in this scan cycle
+
   for (const auto& selectedRegister : registers) {  //____________________________________ loop over all registers
     if (selectedRegister.Mode == 1) {
+      // Skip if we've already fetched this registryID in this scan cycle
+      if (fetched_registries.count(selectedRegister.registryID) > 0) {
+        continue;
+      }
+
+      // Mark this registryID as fetched
+      fetched_registries.insert(selectedRegister.registryID);
+
       auto MyDaikinRequestPackage = daikin_package::MakeRequest(selectedRegister.registryID);
 
       ESP_LOGI("ESPoeDaikin", "TX (%u): %s", (unsigned)MyDaikinRequestPackage.size(), MyDaikinRequestPackage.ToHexString().c_str());
