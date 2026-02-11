@@ -95,7 +95,7 @@ async def to_code(config):
                 cg.add(sens.set_name(r["label"]))
                 cg.add(sens.set_unit_of_measurement(UNIT_CELSIUS))
                 cg.add(sens.set_device_class("temperature"))
-                cg.add(sens.set_state_class("measurement"))
+                cg.add(sens.set_state_class(sensor.StateClass.STATE_CLASS_MEASUREMENT))
                 cg.add(sens.set_accuracy_decimals(1))
 
                 # Register with App
