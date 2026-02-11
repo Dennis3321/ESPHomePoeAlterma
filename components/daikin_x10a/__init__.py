@@ -1,7 +1,12 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
-from esphome.components import uart, text_sensor
-from esphome.const import CONF_ID
+from esphome.components import uart, sensor
+from esphome.const import (
+    CONF_ID,
+    DEVICE_CLASS_TEMPERATURE,
+    STATE_CLASS_MEASUREMENT,
+    UNIT_CELSIUS,
+)
 
 DEPENDENCIES = ["uart"]
 CODEOWNERS = ["@local"]
@@ -29,6 +34,20 @@ DaikinX10A.add_method(
     [cg.std_string],
 )
 
+# Add method to register dynamic sensors
+DaikinX10A.add_method(
+    "register_dynamic_sensor",
+    cg.void,
+    [cg.std_string, cg.PollingComponent.operator("ptr", sensor.Sensor)],
+)
+
+# Add method to update dynamic sensors
+DaikinX10A.add_method(
+    "update_sensor",
+    cg.void,
+    [cg.std_string, cg.float_],
+)
+
 CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(DaikinX10A),
@@ -45,7 +64,8 @@ async def to_code(config):
     await uart.register_uart_device(var, config)
 
     if CONF_REGISTERS in config:
-        for r in config[CONF_REGISTERS]:
+        for idx, r in enumerate(config[CONF_REGISTERS]):
+            # Add register to component
             cg.add(
                 var.add_register(
                     r["mode"],
@@ -57,3 +77,25 @@ async def to_code(config):
                     r["label"],
                 )
             )
+
+            # AUTO-CREATE SENSOR for mode=1 registers
+            if r["mode"] == 1:
+                # Create unique sensor ID from index and label
+                sensor_id = f"daikin_sensor_{idx}"
+
+                # Create sensor config
+                sensor_conf = {
+                    CONF_ID: sensor_id,
+                    "name": r["label"],
+                    "unit_of_measurement": UNIT_CELSIUS,
+                    "device_class": DEVICE_CLASS_TEMPERATURE,
+                    "state_class": STATE_CLASS_MEASUREMENT,
+                    "accuracy_decimals": 1,
+                }
+
+                # Register the sensor
+                sens = cg.new_Pvariable(sensor_id)
+                await sensor.register_sensor(sens, sensor_conf)
+
+                # Link sensor to component so it can publish updates
+                cg.add(var.register_dynamic_sensor(r["label"], sens))

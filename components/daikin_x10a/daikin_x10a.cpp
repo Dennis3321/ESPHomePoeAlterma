@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <string>
+#include <cstdlib>  // for atof
 
 namespace esphome {
 namespace daikin_x10a {
@@ -132,6 +133,13 @@ void DaikinX10A::process_frame_(daikin_package &pkg) {
     if ((uint8_t)registerEntry.registryID != registry_id) continue;
     if (registerEntry.asString[0] == '\0') continue;
     ESP_LOGI("ESPoeDaikin", "0x%02X | %s = %s", registry_id, registerEntry.label, registerEntry.asString);
+
+    // AUTO-UPDATE DYNAMIC SENSORS for mode=1 registers
+    if (registerEntry.Mode == 1) {
+      float value = std::atof(registerEntry.asString);
+      update_sensor(registerEntry.label, value);
+    }
+
     count++;
   }
 
@@ -156,6 +164,23 @@ std::string DaikinX10A::get_register_value(const std::string& label) const {
   return "";  // Return empty string if register not found or value is empty
 }
 //________________________________________________________________ get_register_value end
+
+//__________________________________________________________________________________________________________________________ register_dynamic_sensor begin
+void DaikinX10A::register_dynamic_sensor(const std::string& label, sensor::Sensor *sens) {
+  dynamic_sensors_[label] = sens;
+  ESP_LOGI("ESPoeDaikin", "Registered dynamic sensor: %s", label.c_str());
+}
+//________________________________________________________________ register_dynamic_sensor end
+
+//__________________________________________________________________________________________________________________________ update_sensor begin
+void DaikinX10A::update_sensor(const std::string& label, float value) {
+  auto it = dynamic_sensors_.find(label);
+  if (it != dynamic_sensors_.end() && it->second != nullptr) {
+    it->second->publish_state(value);
+    ESP_LOGD("ESPoeDaikin", "Updated sensor '%s' = %.1f", label.c_str(), value);
+  }
+}
+//________________________________________________________________ update_sensor end
 
 }  // namespace daikin_x10a
 }  // namespace esphome
