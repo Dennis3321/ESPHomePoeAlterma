@@ -1,12 +1,7 @@
 import esphome.codegen as cg
 import esphome.config_validation as cv
 from esphome.components import uart, sensor
-from esphome.const import (
-    CONF_ID,
-    DEVICE_CLASS_TEMPERATURE,
-    STATE_CLASS_MEASUREMENT,
-    UNIT_CELSIUS,
-)
+from esphome.const import CONF_ID, UNIT_CELSIUS
 from esphome.core import ID
 
 DEPENDENCIES = ["uart"]
@@ -93,18 +88,18 @@ async def to_code(config):
                 # Create unique ID for this sensor
                 sensor_id = ID(f"daikin_{label_sanitized}", is_declaration=True, type=sensor.Sensor)
 
-                # Create sensor config
-                sensor_conf = {
-                    CONF_ID: sensor_id,
-                    "name": r["label"],
-                    "unit_of_measurement": UNIT_CELSIUS,
-                    "device_class": DEVICE_CLASS_TEMPERATURE,
-                    "state_class": STATE_CLASS_MEASUREMENT,
-                    "accuracy_decimals": 1,
-                }
+                # Create sensor directly (bypass full validation pipeline)
+                sens = cg.new_Pvariable(sensor_id)
 
-                # Register the sensor
-                sens = await sensor.new_sensor(sensor_conf)
+                # Configure sensor properties
+                cg.add(sens.set_name(r["label"]))
+                cg.add(sens.set_unit_of_measurement(UNIT_CELSIUS))
+                cg.add(sens.set_device_class("temperature"))
+                cg.add(sens.set_state_class("measurement"))
+                cg.add(sens.set_accuracy_decimals(1))
+
+                # Register with App
+                cg.add(cg.App.register_sensor(sens))
 
                 # Link sensor to component so it can publish updates
                 cg.add(var.register_dynamic_sensor(r["label"], sens))
