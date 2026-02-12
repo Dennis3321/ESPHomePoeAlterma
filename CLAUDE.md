@@ -30,6 +30,7 @@ This is an ESPHome-based integration for Daikin Altherma heat pumps, specificall
 ESPHomePoeAlterma/
 ├── components/
 │   └── daikin_x10a/           # Custom ESPHome component
+│       ├── __init__.py        # ESPHome component registration
 │       ├── daikin_x10a.cpp    # Main component implementation
 │       ├── daikin_x10a.h      # Component header
 │       ├── daikin_package.h   # Packet handling
