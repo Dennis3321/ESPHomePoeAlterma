@@ -3,7 +3,7 @@ esphome:
   friendly_name: m5poe
 
 packages:
-  base: github://Dennis3321/ESPHomePoeAlterma/m5poe.yaml@main
+  base: !include ../../m5poe.yaml
 
 
 daikin_x10a:

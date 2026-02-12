@@ -44,17 +44,15 @@ uart:
 
 external_components:
   - source:
-      type: git
-      url: https://github.com/Dennis3321/ESPHomePoeAlterma
-      ref: main
+      type: local
       path: components
     components: [ daikin_x10a ]
-    refresh: 5min
 
   # Unit-4Relay uses I2C + external component (M5Stack)
-  - source: github://m5stack/esphome-yaml/components@main
+  - source:
+      type: local
+      path: .esphome_deps/m5stack/components
     components: unit4relay
-    refresh: 5min
 
 
 # PoESP32: I2C uses GPIO16/17
@@ -141,6 +139,14 @@ daikin_x10a:
   id: daikin_comp
   uart_id: daikin_uart
 
+climate:
+  - platform: daikin_x10a
+    name: "Daikin Altherma"
+    daikin_x10a_id: daikin_comp
+    current_temperature_source: "Leaving water temp. before BUH (R1T)"
+    heat_relay: r2
+    cool_relay: r1
+
 sensor:
   - platform: template
     name: "Leaving water temp. before BUH"
@@ -211,3 +217,179 @@ sensor:
       std::string val = id(daikin_comp).get_register_value("Ext. indoor ambient sensor (R6T)");
       if (val.empty()) return NAN;
       return atof(val.c_str());
+
+  # --- Energy / COP monitoring ---
+  - platform: template
+    name: "Water flow rate"
+    id: flow_rate_sensor
+    unit_of_measurement: "l/min"
+    icon: "mdi:water-pump"
+    accuracy_decimals: 1
+    lambda: |-
+      std::string val = id(daikin_comp).get_register_value("Flow sensor (l/min)");
+      if (val.empty()) return NAN;
+      return atof(val.c_str());
+
+  - platform: template
+    name: "Delta-T"
+    id: delta_t_sensor
+    unit_of_measurement: "°C"
+    device_class: temperature
+    accuracy_decimals: 1
+    lambda: |-
+      float leaving = id(r1t_sensor).state;
+      float inlet = id(r4t_sensor).state;
+      if (std::isnan(leaving) || std::isnan(inlet)) return NAN;
+      return leaving - inlet;
+
+  - platform: template
+    name: "Thermal power"
+    id: thermal_power_sensor
+    unit_of_measurement: "kW"
+    device_class: power
+    accuracy_decimals: 2
+    lambda: |-
+      float flow = id(flow_rate_sensor).state;
+      float dt = id(delta_t_sensor).state;
+      if (std::isnan(flow) || std::isnan(dt) || flow <= 0.0f) return NAN;
+      return flow * dt * 4.186f / 60.0f;
+
+  - platform: template
+    name: "CT sensor L1"
+    id: ct_l1_sensor
+    unit_of_measurement: "A"
+    device_class: current
+    accuracy_decimals: 1
+    lambda: |-
+      std::string val = id(daikin_comp).get_register_value("Current measured by CT sensor of L1");
+      if (val.empty()) return NAN;
+      return atof(val.c_str());
+
+  - platform: template
+    name: "CT sensor L2"
+    id: ct_l2_sensor
+    unit_of_measurement: "A"
+    device_class: current
+    accuracy_decimals: 1
+    lambda: |-
+      std::string val = id(daikin_comp).get_register_value("Current measured by CT sensor of L2");
+      if (val.empty()) return NAN;
+      return atof(val.c_str());
+
+  - platform: template
+    name: "CT sensor L3"
+    id: ct_l3_sensor
+    unit_of_measurement: "A"
+    device_class: current
+    accuracy_decimals: 1
+    lambda: |-
+      std::string val = id(daikin_comp).get_register_value("Current measured by CT sensor of L3");
+      if (val.empty()) return NAN;
+      return atof(val.c_str());
+
+  - platform: template
+    name: "Electrical power"
+    id: electrical_power_sensor
+    unit_of_measurement: "kW"
+    device_class: power
+    accuracy_decimals: 2
+    lambda: |-
+      float l1 = id(ct_l1_sensor).state;
+      float l2 = id(ct_l2_sensor).state;
+      float l3 = id(ct_l3_sensor).state;
+      if (std::isnan(l1)) l1 = 0.0f;
+      if (std::isnan(l2)) l2 = 0.0f;
+      if (std::isnan(l3)) l3 = 0.0f;
+      float total_amps = l1 + l2 + l3;
+      if (total_amps <= 0.0f) return NAN;
+      return total_amps * 230.0f / 1000.0f;
+
+  - platform: template
+    name: "COP"
+    id: cop_sensor
+    unit_of_measurement: ""
+    icon: "mdi:gauge"
+    accuracy_decimals: 1
+    lambda: |-
+      float thermal = id(thermal_power_sensor).state;
+      float electrical = id(electrical_power_sensor).state;
+      if (std::isnan(thermal) || std::isnan(electrical) || electrical <= 0.01f) return NAN;
+      float cop = thermal / electrical;
+      if (cop < 0.0f || cop > 15.0f) return NAN;
+      return cop;
+
+  - platform: template
+    name: "LW setpoint (main)"
+    id: lw_setpoint_sensor
+    unit_of_measurement: "°C"
+    device_class: temperature
+    accuracy_decimals: 1
+    lambda: |-
+      std::string val = id(daikin_comp).get_register_value("LW setpoint (main)");
+      if (val.empty()) return NAN;
+      return atof(val.c_str());
+
+  - platform: template
+    name: "DHW setpoint"
+    id: dhw_setpoint_sensor
+    unit_of_measurement: "°C"
+    device_class: temperature
+    accuracy_decimals: 1
+    lambda: |-
+      std::string val = id(daikin_comp).get_register_value("DHW setpoint");
+      if (val.empty()) return NAN;
+      return atof(val.c_str());
+
+  - platform: template
+    name: "Outdoor air temp."
+    id: outdoor_temp_sensor
+    unit_of_measurement: "°C"
+    device_class: temperature
+    accuracy_decimals: 1
+    lambda: |-
+      std::string val = id(daikin_comp).get_register_value("R1T-Outdoor air temp.");
+      if (val.empty()) return NAN;
+      return atof(val.c_str());
+
+# --- Diagnostics ---
+binary_sensor:
+  - platform: template
+    name: "Daikin communication"
+    id: daikin_comm_status
+    device_class: connectivity
+    lambda: |-
+      uint32_t last = id(daikin_comp).last_successful_read_ms();
+      if (last == 0) return false;
+      return (millis() - last) < 120000;
+
+text_sensor:
+  - platform: template
+    name: "Error status OU"
+    id: error_ou_sensor
+    lambda: |-
+      std::string err_type = id(daikin_comp).get_register_value("Error type (O/U)");
+      std::string err_code = id(daikin_comp).get_register_value("Error Code (O/U)");
+      if (err_type.empty() && err_code.empty()) return std::string("Unknown");
+      if (err_type == "Normal" && (err_code.empty() || err_code == "  ")) return std::string("OK");
+      return err_type + " " + err_code;
+
+  - platform: template
+    name: "Error status IU"
+    id: error_iu_sensor
+    lambda: |-
+      std::string err_type = id(daikin_comp).get_register_value("Error type (I/U)");
+      std::string err_code = id(daikin_comp).get_register_value("Error Code (I/U)");
+      if (err_type.empty() && err_code.empty()) return std::string("Unknown");
+      if (err_type == "Normal" && (err_code.empty() || err_code == "  ")) return std::string("OK");
+      return err_type + " " + err_code;
+
+  - platform: template
+    name: "IU operation mode"
+    id: iu_operation_mode
+    lambda: |-
+      std::string val = id(daikin_comp).get_register_value("I/U operation mode");
+      if (val.empty()) return std::string("Unknown");
+      return val;
+
+web_server:
+  port: 80

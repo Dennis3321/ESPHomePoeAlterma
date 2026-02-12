@@ -151,6 +151,8 @@ void DaikinX10A::process_frame_(daikin_package &pkg) {
 
   pkg.convert_registry_values(registry_id, registers_);
 
+  last_successful_read_ms_ = millis();
+
   int count = 0;
   for (auto &registerEntry : registers_) {
     if ((uint8_t)registerEntry.registryID != registry_id) continue;
@@ -159,14 +161,23 @@ void DaikinX10A::process_frame_(daikin_package &pkg) {
 
     // Auto-update dynamic sensors for mode=1 registers
     if (registerEntry.Mode == 1) {
-      float value = std::atof(registerEntry.asString);
-      update_sensor(registerEntry.label, value);
+      if (registerEntry.is_text_type()) {
+        update_text_sensor(registerEntry.label, registerEntry.asString);
+      } else {
+        float value = std::atof(registerEntry.asString);
+        update_sensor(registerEntry.label, value);
+      }
     }
 
     count++;
   }
 
   ESP_LOGD(TAG, "Decoded %d values for registry 0x%02X", count, registry_id);
+
+  // Fire update callbacks (used by climate entity, etc.)
+  for (auto &cb : update_callbacks_) {
+    cb();
+  }
 }
 
 //__________ add_register begin
@@ -197,6 +208,21 @@ void DaikinX10A::update_sensor(const std::string& label, float value) {
   if (it != dynamic_sensors_.end() && it->second != nullptr) {
     it->second->publish_state(value);
     ESP_LOGV(TAG, "Updated sensor '%s' = %.1f", label.c_str(), value);
+  }
+}
+
+//__________ register_dynamic_text_sensor begin
+void DaikinX10A::register_dynamic_text_sensor(const std::string& label, text_sensor::TextSensor *sens) {
+  dynamic_text_sensors_[label] = sens;
+  ESP_LOGI(TAG, "Registered dynamic text sensor: %s", label.c_str());
+}
+
+//__________ update_text_sensor begin
+void DaikinX10A::update_text_sensor(const std::string& label, const std::string& value) {
+  auto it = dynamic_text_sensors_.find(label);
+  if (it != dynamic_text_sensors_.end() && it->second != nullptr) {
+    it->second->publish_state(value);
+    ESP_LOGV(TAG, "Updated text sensor '%s' = %s", label.c_str(), value.c_str());
   }
 }
 
