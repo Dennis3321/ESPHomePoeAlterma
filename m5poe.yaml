@@ -9,9 +9,10 @@ esp32:
 
 logger:
   baud_rate: 0
+
 api:
   encryption:
-        key: !secret api_encryption_key
+    key: !secret api_encryption_key
 
 ota:
   - platform: esphome
@@ -48,16 +49,15 @@ external_components:
       ref: main
       path: components
     components: [ daikin_x10a ]
-    refresh: 0s  # Always fetch latest from GitHub
+    refresh: 5min
 
-
-# Unit-4Relay uses I2C + external component (M5Stack)
+  # Unit-4Relay uses I2C + external component (M5Stack)
   - source: github://m5stack/esphome-yaml/components@main
     components: unit4relay
     refresh: 5min
 
 
-# PoESP32: I2C uses GPIO16/17 
+# PoESP32: I2C uses GPIO16/17
 i2c:
   sda: GPIO16
   scl: GPIO17
@@ -65,7 +65,7 @@ i2c:
 
 unit4relay:
 
-# Interne relais (mag je ook hide-en in HA)
+# Internal relays (hidden from HA)
 switch:
   - platform: unit4relay
     relay_1:
@@ -97,7 +97,7 @@ select:
     initial_option: "Off"
     set_action:
       - lambda: |-
-          // Eerst veilig alles uit
+          // Safety: turn off all relays first
           id(r1).turn_off();
           id(r2).turn_off();
 
@@ -121,7 +121,7 @@ select:
     initial_option: "Free running"
     set_action:
       - lambda: |-
-          // Eerst veilig alles uit
+          // Safety: turn off all relays first
           id(r3).turn_off();
           id(r4).turn_off();
 

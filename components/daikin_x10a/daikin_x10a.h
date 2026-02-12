@@ -1,7 +1,7 @@
 #pragma once
 #include "esphome/core/component.h"
-#include "esphome/core/application.h"      // App
-#include "esphome/core/entity_base.h"      // EntityCategory
+#include "esphome/core/application.h"
+#include "esphome/core/entity_base.h"
 #include "esphome/components/uart/uart.h"
 #include "esphome/components/sensor/sensor.h"
 #include <vector>
@@ -17,7 +17,12 @@ class DaikinX10A : public uart::UARTDevice, public Component {
  public:
   explicit DaikinX10A(uart::UARTComponent *parent) : uart::UARTDevice(parent) {}
   virtual ~DaikinX10A();
+
+    void setup() override;
+    void dump_config() override;
     void loop() override;
+    float get_setup_priority() const override { return setup_priority::LATE; }
+
     void FetchRegisters();
     void add_register(int mode, int convid, int offset, int registryID, int dataSize, int dataType, const char* label);
 
@@ -29,6 +34,7 @@ class DaikinX10A : public uart::UARTDevice, public Component {
     void update_sensor(const std::string& label, float value);
 
  protected:
+  std::vector<Register> registers_;
   std::vector<uint8_t> buffer_;
   uint8_t last_requested_registry_{0};
 

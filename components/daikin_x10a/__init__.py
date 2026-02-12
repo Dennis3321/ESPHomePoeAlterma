@@ -12,7 +12,7 @@ CONF_REGISTERS = "registers"
 
 REGISTER_SCHEMA = cv.Schema({
     cv.Required("mode"): cv.int_,
-    cv.Required("convid"): cv.hex_int,
+    cv.Required("convid"): cv.int_,
     cv.Required("offset"): cv.int_,
     cv.Required("registryID"): cv.int_,
     cv.Required("dataSize"): cv.int_,
@@ -48,7 +48,7 @@ CONFIG_SCHEMA = cv.Schema(
     {
         cv.GenerateID(): cv.declare_id(DaikinX10A),
         cv.Required(CONF_UART_ID): cv.use_id(uart.UARTComponent),
-        cv.Required("mode"): cv.int_,
+        cv.Optional("mode", default=0): cv.int_,
         cv.Optional(CONF_REGISTERS): cv.ensure_list(REGISTER_SCHEMA),
     }
 ).extend(cv.COMPONENT_SCHEMA)

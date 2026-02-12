@@ -6,8 +6,10 @@
 #include <cstdint>
 #include <cstring>
 #include <cmath>
+#include <algorithm>
 
-#include "register_definitions.h"  // Register + registers[]
+#include "esphome/core/log.h"
+#include "register_definitions.h"
 
 class daikin_package {
  public:
@@ -69,23 +71,22 @@ class daikin_package {
 
   Mode mode() const { return mode_; }
 
-  // Protocol I: registry ID at byte position 1
-  uint8_t registry_id() const { 
-    return (packet_buffer.size() > 1) ? packet_buffer[1] : 0; 
+  // Protocol: registry ID at byte position 1
+  uint8_t registry_id() const {
+    return (packet_buffer.size() > 1) ? packet_buffer[1] : 0;
   }
 
-  // Protocol I: data starts at byte position 3 (after: 0x40, registry_id, length)
-  unsigned data_offset() const { 
-    return 3; 
+  // Protocol: data starts at byte position 3 (after: 0x40, registry_id, length)
+  unsigned data_offset() const {
+    return 3;
   }
 
-  // =======================================================
-  // Converter (op basis van jouw registers[])
-  // =======================================================
-  void convert_registry_values(uint8_t reg_id) {
+  // Convert raw packet data to register values
+  void convert_registry_values(uint8_t reg_id, std::vector<Register>& registers) {
     unsigned offset = data_offset();
-    
-    ESP_LOGI("ESPoeDaikin", "convert_registry_values: registry_id = %d (hex: 0x%02X), data_offset = %u", (int)reg_id, reg_id, offset);
+
+    ESP_LOGD("daikin_x10a", "convert_registry_values: registry 0x%02X, data_offset=%u",
+             reg_id, offset);
     for (auto &reg : registers) {
       if (static_cast<uint8_t>(reg.registryID) != reg_id) continue;
 
@@ -94,7 +95,7 @@ class daikin_package {
       if (need > packet_buffer.size()) continue;
 
       const uint8_t *input = &packet_buffer[idx];
-      ESP_LOGI("ESPoeDaikin", "  Processing %s: offset=%d, idx=%u, byte_at_idx=0x%02X", 
+      ESP_LOGV("daikin_x10a", "  Processing %s: offset=%d, idx=%u, byte=0x%02X",
                reg.label, reg.offset, idx, packet_buffer[idx]);
       convert_one_(reg, input);
     }
@@ -201,7 +202,6 @@ class daikin_package {
       "UseStrdThrm(ht)1","UseStrdThrm(ht)2","UseStrdThrm(ht)3","UseStrdThrm(ht)4"
     };
     int idx = (int)data[0];
-    ESP_LOGI("ESPoeDaikin", "  convertTable217_: raw_byte=0x%02X (decimal %d), array_size=%d", data[0], idx, (int)(sizeof(r217) / sizeof(r217[0])));
     if (idx >= 0 && idx < (int)(sizeof(r217) / sizeof(r217[0]))) strcpy(ret, r217[idx]);
     else strcpy(ret, "-");
   }
@@ -222,19 +222,19 @@ class daikin_package {
       case 0x00:
         return;
 
-      case 100:
-        strncat(def.asString, (const char*)data, (size_t)num);
+      case 100: {
+        size_t copy_len = std::min((size_t)num, sizeof(def.asString) - 1);
+        memcpy(def.asString, data, copy_len);
+        def.asString[copy_len] = '\0';
         return;
+      }
 
-      // signed
+      // Signed conversions: odd=LE (cnvflg=0), even=BE (cnvflg=1)
       case 101: dblData = (double)getSignedValue_(data, num, 0); break;
       case 102: dblData = (double)getSignedValue_(data, num, 1); break;
       case 103: dblData = (double)getSignedValue_(data, num, 0) / 256.0; break;
       case 104: dblData = (double)getSignedValue_(data, num, 1) / 256.0; break;
-      case 105: 
-        dblData = (double)getSignedValue_(data, num, 0) * 0.1; 
-        ESP_LOGD("ESPoeDaikin", "    convid 105: bytes[0]=0x%02X bytes[1]=0x%02X → %g°C", data[0], (num > 1 ? data[1] : 0), dblData);
-        break;
+      case 105: dblData = (double)getSignedValue_(data, num, 0) * 0.1; break;
       case 106: dblData = (double)getSignedValue_(data, num, 1) * 0.1; break;
 
       case 107:
@@ -247,7 +247,15 @@ class daikin_package {
         if (dblData == -3276.8) { strcpy(def.asString, "---"); return; }
         break;
 
-      // unsigned
+      // Additional signed conversions (same pattern as 10x series)
+      case 114: dblData = (double)getSignedValue_(data, num, 1) * 0.1; break;
+      case 118:
+        dblData = (double)getSignedValue_(data, num, 1) * 0.1;
+        if (dblData == -3276.8) { strcpy(def.asString, "---"); return; }
+        break;
+      case 119: dblData = (double)getSignedValue_(data, num, 0) * 0.1; break;
+
+      // Unsigned conversions
       case 151: dblData = (double)getUnsignedValue_(data, num, 0); break;
       case 152: dblData = (double)getUnsignedValue_(data, num, 1); break;
       case 153: dblData = (double)getUnsignedValue_(data, num, 0) / 256.0; break;
@@ -255,16 +263,37 @@ class daikin_package {
       case 155: dblData = (double)getUnsignedValue_(data, num, 0) * 0.1; break;
       case 156: dblData = (double)getUnsignedValue_(data, num, 1) * 0.1; break;
 
-      // tables
+      // Additional unsigned
+      case 161: dblData = (double)getUnsignedValue_(data, num, 0) * 0.5; break;
+
+      // Table conversions
       case 200: convertTable200_(data, def.asString); return;
       case 203: convertTable203_(data, def.asString); return;
       case 204: convertTable204_(data, def.asString); return;
       case 201:
       case 217: convertTable217_(data, def.asString); return;
 
+      // EEPROM / code display
+      case 214: snprintf(def.asString, sizeof(def.asString), "%02X", data[0]); return;
+      case 215: snprintf(def.asString, sizeof(def.asString), "%02X", data[0]); return;
+      case 219: snprintf(def.asString, sizeof(def.asString), "%u", data[0]); return;
+
+      // Bit field extractions (bit position = convid % 10)
       case 300: case 301: case 302: case 303: case 304: case 305: case 306: case 307:
         convertTable300_(data, def.convid, def.asString);
         return;
+
+      // Nibble extractions
+      case 310: {
+        uint8_t val = (data[0] >> 4) & 0x0F;
+        snprintf(def.asString, sizeof(def.asString), "%u", val);
+        return;
+      }
+      case 311: {
+        uint8_t val = data[0] & 0x0F;
+        snprintf(def.asString, sizeof(def.asString), "%u", val);
+        return;
+      }
 
       case 312:
         dblData = convertTable312_(data);
@@ -278,13 +307,18 @@ class daikin_package {
         dblData = (double)data[0];
         break;
 
-      // pressure -> temp
+      // Pressure -> temp conversions
       case 401: dblData = convertPress2Temp_((double)getSignedValue_(data, num, 0)); break;
       case 402: dblData = convertPress2Temp_((double)getSignedValue_(data, num, 1)); break;
       case 403: dblData = convertPress2Temp_((double)getSignedValue_(data, num, 0) / 256.0); break;
       case 404: dblData = convertPress2Temp_((double)getSignedValue_(data, num, 1) / 256.0); break;
       case 405: dblData = convertPress2Temp_((double)getSignedValue_(data, num, 0) * 0.1); break;
       case 406: dblData = convertPress2Temp_((double)getSignedValue_(data, num, 1) * 0.1); break;
+
+      // Special markers (no data to convert)
+      case 802: return;
+      case 995: return;
+      case 998: return;
 
       default:
         snprintf(def.asString, sizeof(def.asString), "Conv %d NA", convId);
