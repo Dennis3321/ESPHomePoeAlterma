@@ -3,7 +3,7 @@ esphome:
   friendly_name: m5poe
 
 packages:
-  base: github://Dennis3321/ESPHomePoeAlterma/m5poe.yaml@main
+  base: !include ../../m5poe.yaml
 
 
 daikin_x10a:
@@ -33,11 +33,11 @@ daikin_x10a:
     - { mode: 0, registryID: 0x10, offset: 1, convid: 302, dataSize: 1, dataType: -1, label: "Pressure equalizing operation" }
     - { mode: 0, registryID: 0x10, offset: 1, convid: 301, dataSize: 1, dataType: -1, label: "Demand Signal" }
     - { mode: 0, registryID: 0x10, offset: 1, convid: 300, dataSize: 1, dataType: -1, label: "Low noise control" }
-    - { mode: 0, registryID: 0x10, offset: 4, convid: 203, dataSize: 1, dataType: -1, label: "Error type" }
-    - { mode: 0, registryID: 0x10, offset: 5, convid: 204, dataSize: 1, dataType: -1, label: "Error Code" }
+    - { mode: 0, registryID: 0x10, offset: 4, convid: 203, dataSize: 1, dataType: -1, label: "Error type (O/U)" }
+    - { mode: 0, registryID: 0x10, offset: 5, convid: 204, dataSize: 1, dataType: -1, label: "Error Code (O/U)" }
     - { mode: 0, registryID: 0x10, offset: 6, convid: 114, dataSize: 2, dataType: 1, label: "Target Evap. Temp." }
     - { mode: 0, registryID: 0x10, offset: 8, convid: 114, dataSize: 2, dataType: 1, label: "Target Cond. Temp." }
-    - { mode: 0, registryID: 0x10, offset: 10, convid: 307, dataSize: 1, dataType: -1, label: "Discharge Temp. Drop" }
+    - { mode: 0, registryID: 0x10, offset: 10, convid: 307, dataSize: 1, dataType: -1, label: "Discharge Temp. Drop (O/U)" }
     - { mode: 0, registryID: 0x10, offset: 10, convid: 310, dataSize: 1, dataType: -1, label: "Discharge Temp. Protection Retry Qty" }
     - { mode: 0, registryID: 0x10, offset: 10, convid: 303, dataSize: 1, dataType: -1, label: "Comp. INV Current Drop" }
     - { mode: 0, registryID: 0x10, offset: 10, convid: 311, dataSize: 1, dataType: -1, label: "Comp. INV Current Protection Retry Qty" }
@@ -48,14 +48,14 @@ daikin_x10a:
     - { mode: 0, registryID: 0x10, offset: 12, convid: 307, dataSize: 1, dataType: -1, label: "Fin Temp. Drop Control" }
     - { mode: 0, registryID: 0x10, offset: 12, convid: 310, dataSize: 1, dataType: -1, label: "Fin Temp. Protection Retry Qty" }
     - { mode: 0, registryID: 0x10, offset: 12, convid: 303, dataSize: 1, dataType: -1, label: "Other Drop Control" }
-    - { mode: 0, registryID: 0x10, offset: 12, convid: 311, dataSize: 1, dataType: -1, label: "Not in use" }
+    - { mode: 0, registryID: 0x10, offset: 12, convid: 311, dataSize: 1, dataType: -1, label: "Not in use (0x10 off12)" }
     - { mode: 0, registryID: 0x11, offset: 0, convid: 215, dataSize: 1, dataType: -1, label: "O/U EEPROM (1st digit)" }
     - { mode: 0, registryID: 0x11, offset: 1, convid: 215, dataSize: 1, dataType: -1, label: "O/U EEPROM (3rd 4th digit)" }
     - { mode: 0, registryID: 0x11, offset: 2, convid: 215, dataSize: 1, dataType: -1, label: "O/U EEPROM (5th 6th digit)" }
     - { mode: 0, registryID: 0x11, offset: 3, convid: 215, dataSize: 1, dataType: -1, label: "O/U EEPROM (7th 8th digit)" }
     - { mode: 0, registryID: 0x11, offset: 4, convid: 215, dataSize: 1, dataType: -1, label: "O/U EEPROM (10th digit)" }
     - { mode: 0, registryID: 0x11, offset: 5, convid: 214, dataSize: 1, dataType: -1, label: "O/U EEPROM (11th digit)" }
-    - { mode: 0, registryID: 0x00, offset: 0, convid: 995, dataSize: 1, dataType: -1, label: "NextDataGrid" }
+    - { mode: 0, registryID: 0x00, offset: 0, convid: 995, dataSize: 1, dataType: -1, label: "NextDataGrid (outdoor)" }
     - { mode: 0, registryID: 0x20, offset: 0, convid: 105, dataSize: 2, dataType: 1, label: "R1T-Outdoor air temp." }
     - { mode: 0, registryID: 0x20, offset: 2, convid: 105, dataSize: 2, dataType: 1, label: "O/U Heat Exch. Temp." }
     - { mode: 0, registryID: 0x20, offset: 4, convid: 105, dataSize: 2, dataType: 1, label: "Discharge pipe temp." }
@@ -72,36 +72,36 @@ daikin_x10a:
     - { mode: 0, registryID: 0x21, offset: 6, convid: 105, dataSize: 2, dataType: 1, label: "Fan1 Fin temp." }
     - { mode: 0, registryID: 0x21, offset: 8, convid: 105, dataSize: 2, dataType: 1, label: "Fan2 Fin temp." }
     - { mode: 0, registryID: 0x21, offset: 10, convid: 105, dataSize: 2, dataType: 1, label: "Compressor outlet temperature" }
-    - { mode: 0, registryID: 0x00, offset: 0, convid: 995, dataSize: 1, dataType: -1, label: "NextDataGrid" }
+    - { mode: 0, registryID: 0x00, offset: 0, convid: 995, dataSize: 1, dataType: -1, label: "NextDataGrid (actuator)" }
     - { mode: 0, registryID: 0x30, offset: 0, convid: 152, dataSize: 1, dataType: -1, label: "INV frequency (rps)" }
     - { mode: 0, registryID: 0x30, offset: 1, convid: 211, dataSize: 1, dataType: -1, label: "Fan 1 (step)" }
     - { mode: 0, registryID: 0x30, offset: 2, convid: 211, dataSize: 1, dataType: -1, label: "Fan 2 (step)" }
     - { mode: 0, registryID: 0x30, offset: 3, convid: 151, dataSize: 2, dataType: -1, label: "Expansion valve 1 (pls)" }
     - { mode: 0, registryID: 0x30, offset: 5, convid: 151, dataSize: 2, dataType: -1, label: "Expansion valve 2 (pls)" }
-    - { mode: 0, registryID: 0x30, offset: 7, convid: 151, dataSize: 2, dataType: -1, label: "Expansion valve 3 (pls)" }
+    - { mode: 0, registryID: 0x30, offset: 7, convid: 151, dataSize: 2, dataType: -1, label: "O/U Expansion valve 3 (pls)" }
     - { mode: 0, registryID: 0x30, offset: 9, convid: 151, dataSize: 2, dataType: -1, label: "Expansion valve 4 (pls)" }
     - { mode: 0, registryID: 0x30, offset: 11, convid: 307, dataSize: 1, dataType: -1, label: "4 Way Valve" }
-    - { mode: 0, registryID: 0x30, offset: 12, convid: 307, dataSize: 1, dataType: -1, label: "Crank case heater" }
+    - { mode: 0, registryID: 0x30, offset: 12, convid: 307, dataSize: 1, dataType: -1, label: "Crank case heater (0x30)" }
     - { mode: 0, registryID: 0x30, offset: 13, convid: 307, dataSize: 1, dataType: -1, label: "Y1S" }
-    - { mode: 0, registryID: 0x30, offset: 13, convid: 306, dataSize: 1, dataType: -1, label: "SV (drain pan heater)" }
+    - { mode: 0, registryID: 0x30, offset: 13, convid: 306, dataSize: 1, dataType: -1, label: "SV drain pan heater (0x30)" }
     - { mode: 0, registryID: 0x30, offset: 13, convid: 305, dataSize: 1, dataType: -1, label: "Y3S" }
     - { mode: 0, registryID: 0x00, offset: 0, convid: 998, dataSize: 1, dataType: -1, label: "In-Out separator" }
     - { mode: 0, registryID: 0xA0, offset: 0, convid: 119, dataSize: 2, dataType: 1, label: "Suction temp" }
     - { mode: 0, registryID: 0xA0, offset: 2, convid: 119, dataSize: 2, dataType: 1, label: "Outdoor heat exchanger temp." }
     - { mode: 0, registryID: 0xA0, offset: 4, convid: 119, dataSize: 2, dataType: 1, label: "Liquid pipe temp." }
     - { mode: 0, registryID: 0xA0, offset: 6, convid: 119, dataSize: 2, dataType: 2, label: "Pressure" }
-    - { mode: 0, registryID: 0xA0, offset: 8, convid: 151, dataSize: 2, dataType: -1, label: "Expansion valve 3 (pls)" }
-    - { mode: 0, registryID: 0xA0, offset: 10, convid: 152, dataSize: 1, dataType: -1, label: "O/U MPU ID" }
-    - { mode: 0, registryID: 0xA0, offset: 11, convid: 152, dataSize: 1, dataType: -1, label: "O/U MPU ID" }
+    - { mode: 0, registryID: 0xA0, offset: 8, convid: 151, dataSize: 2, dataType: -1, label: "I/U Expansion valve 3 (pls)" }
+    - { mode: 0, registryID: 0xA0, offset: 10, convid: 152, dataSize: 1, dataType: -1, label: "O/U MPU ID (0xA0 xx)" }
+    - { mode: 0, registryID: 0xA0, offset: 11, convid: 152, dataSize: 1, dataType: -1, label: "O/U MPU ID (0xA0 yy)" }
     - { mode: 0, registryID: 0xA0, offset: 12, convid: 307, dataSize: 1, dataType: -1, label: "HPS operation" }
     - { mode: 0, registryID: 0xA0, offset: 12, convid: 306, dataSize: 1, dataType: -1, label: "Safeguard operation" }
-    - { mode: 0, registryID: 0xA0, offset: 12, convid: 305, dataSize: 1, dataType: -1, label: "Crank case heater" }
+    - { mode: 0, registryID: 0xA0, offset: 12, convid: 305, dataSize: 1, dataType: -1, label: "Crank case heater (0xA0)" }
     - { mode: 0, registryID: 0xA0, offset: 12, convid: 304, dataSize: 1, dataType: -1, label: "Solenoid Valve 3" }
-    - { mode: 0, registryID: 0xA0, offset: 12, convid: 303, dataSize: 1, dataType: -1, label: "SV (drain pan heater)" }
+    - { mode: 0, registryID: 0xA0, offset: 12, convid: 303, dataSize: 1, dataType: -1, label: "SV drain pan heater (0xA0)" }
     - { mode: 0, registryID: 0xA0, offset: 12, convid: 302, dataSize: 1, dataType: -1, label: "Solenoid Valve 1" }
     - { mode: 0, registryID: 0xA0, offset: 12, convid: 301, dataSize: 1, dataType: -1, label: "4 way valve (Y1S)" }
     - { mode: 0, registryID: 0xA0, offset: 12, convid: 300, dataSize: 1, dataType: -1, label: "52C Output" }
-    - { mode: 0, registryID: 0xA0, offset: 13, convid: 303, dataSize: 1, dataType: -1, label: "Discharge Temp. Drop" }
+    - { mode: 0, registryID: 0xA0, offset: 13, convid: 303, dataSize: 1, dataType: -1, label: "Discharge Temp. Drop (I/U)" }
     - { mode: 0, registryID: 0xA0, offset: 13, convid: 302, dataSize: 1, dataType: -1, label: "During emergency operation" }
     - { mode: 0, registryID: 0xA0, offset: 13, convid: 301, dataSize: 1, dataType: -1, label: "Indoor unit blowout 50 ° C flag" }
     - { mode: 0, registryID: 0xA0, offset: 13, convid: 300, dataSize: 1, dataType: -1, label: "Powerful bit (MT setting bit)" }
@@ -110,7 +110,7 @@ daikin_x10a:
     - { mode: 0, registryID: 0xA1, offset: 2, convid: 119, dataSize: 2, dataType: 1, label: "(Raw data)Water heat exchanger outlet temp." }
     - { mode: 0, registryID: 0xA1, offset: 4, convid: 302, dataSize: 1, dataType: -1, label: "Liquid INJ solenoid valve (Y4S)" }
     - { mode: 0, registryID: 0xA1, offset: 4, convid: 301, dataSize: 1, dataType: -1, label: "Bottom Plate Heater" }
-    - { mode: 0, registryID: 0xA1, offset: 4, convid: 300, dataSize: 1, dataType: -1, label: "PHE Heater" }
+    - { mode: 0, registryID: 0xA1, offset: 4, convid: 300, dataSize: 1, dataType: -1, label: "PHE Heater (0xA1)" }
     - { mode: 0, registryID: 0xA1, offset: 5, convid: 114, dataSize: 2, dataType: 1, label: "Target Discharge Temp." }
     - { mode: 0, registryID: 0xA1, offset: 7, convid: 114, dataSize: 2, dataType: 1, label: "Target port temperature" }
     - { mode: 0, registryID: 0xA1, offset: 9, convid: 305, dataSize: 1, dataType: -1, label: "Monobloc setting" }
@@ -119,16 +119,16 @@ daikin_x10a:
     - { mode: 0, registryID: 0xA1, offset: 9, convid: 302, dataSize: 1, dataType: -1, label: "GSHP setting" }
     - { mode: 0, registryID: 0xA1, offset: 9, convid: 301, dataSize: 1, dataType: -1, label: "Hydro split setting" }
     - { mode: 0, registryID: 0xA1, offset: 9, convid: 300, dataSize: 1, dataType: -1, label: "Alterma LT setting" }
-    - { mode: 0, registryID: 0x60, offset: 0, convid: 304, dataSize: 1, dataType: -1, label: "Data Enable/Disable" }
-    - { mode: 0, registryID: 0x60, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address" }
+    - { mode: 0, registryID: 0x60, offset: 0, convid: 304, dataSize: 1, dataType: -1, label: "Data Enable/Disable (0x60)" }
+    - { mode: 0, registryID: 0x60, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address (0x60)" }
     - { mode: 0, registryID: 0x60, offset: 2, convid: 315, dataSize: 1, dataType: -1, label: "I/U operation mode" }
-    - { mode: 0, registryID: 0x60, offset: 2, convid: 303, dataSize: 1, dataType: -1, label: "Thermostat ON/OFF" }
+    - { mode: 0, registryID: 0x60, offset: 2, convid: 303, dataSize: 1, dataType: -1, label: "Thermostat ON/OFF (I/U)" }
     - { mode: 0, registryID: 0x60, offset: 2, convid: 302, dataSize: 1, dataType: -1, label: "Freeze Protection" }
     - { mode: 0, registryID: 0x60, offset: 2, convid: 301, dataSize: 1, dataType: -1, label: "Silent Mode" }
     - { mode: 0, registryID: 0x60, offset: 2, convid: 300, dataSize: 1, dataType: -1, label: "Freeze Protection for water piping" }
-    - { mode: 0, registryID: 0x60, offset: 3, convid: 204, dataSize: 1, dataType: -1, label: "Error Code" }
+    - { mode: 0, registryID: 0x60, offset: 3, convid: 204, dataSize: 1, dataType: -1, label: "Error Code (I/U)" }
     - { mode: 0, registryID: 0x60, offset: 4, convid: 152, dataSize: 1, dataType: -1, label: "Error detailed code" }
-    - { mode: 0, registryID: 0x60, offset: 5, convid: 203, dataSize: 1, dataType: -1, label: "Error type" }
+    - { mode: 0, registryID: 0x60, offset: 5, convid: 203, dataSize: 1, dataType: -1, label: "Error type (I/U)" }
     - { mode: 0, registryID: 0x60, offset: 6, convid: 219, dataSize: 1, dataType: -1, label: "I/U capacity code" }
     - { mode: 0, registryID: 0x60, offset: 7, convid: 105, dataSize: 2, dataType: 1, label: "DHW setpoint" }
     - { mode: 0, registryID: 0x60, offset: 9, convid: 105, dataSize: 2, dataType: 1, label: "LW setpoint (main)" }
@@ -152,8 +152,8 @@ daikin_x10a:
     - { mode: 0, registryID: 0x60, offset: 15, convid: 215, dataSize: 1, dataType: -1, label: "I/U Software ID (xx)" }
     - { mode: 0, registryID: 0x60, offset: 14, convid: 215, dataSize: 1, dataType: -1, label: "I/U Software ID (yy)" }
     - { mode: 0, registryID: 0x60, offset: 16, convid: 152, dataSize: 1, dataType: -1, label: "I/U EEPROM Ver." }
-    - { mode: 0, registryID: 0x61, offset: 0, convid: 307, dataSize: 1, dataType: -1, label: "Data Enable/Disable" }
-    - { mode: 0, registryID: 0x61, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address" }
+    - { mode: 0, registryID: 0x61, offset: 0, convid: 307, dataSize: 1, dataType: -1, label: "Data Enable/Disable (0x61)" }
+    - { mode: 0, registryID: 0x61, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address (0x61)" }
     - { mode: 0, registryID: 0x61, offset: 2, convid: 105, dataSize: 2, dataType: 1, label: "Leaving water temp. before BUH (R1T)" }
     - { mode: 0, registryID: 0x61, offset: 4, convid: 105, dataSize: 2, dataType: 1, label: "Leaving water temp. after BUH (R2T)" }
     - { mode: 0, registryID: 0x61, offset: 6, convid: 105, dataSize: 2, dataType: 1, label: "Refrig. Temp. liquid side (R3T)" }
@@ -161,15 +161,15 @@ daikin_x10a:
     - { mode: 0, registryID: 0x61, offset: 10, convid: 105, dataSize: 2, dataType: 1, label: "DHW tank temp. (R5T)" }
     - { mode: 0, registryID: 0x61, offset: 12, convid: 105, dataSize: 2, dataType: 1, label: "Indoor ambient temp. (R1T)" }
     - { mode: 0, registryID: 0x61, offset: 14, convid: 105, dataSize: 2, dataType: 1, label: "Ext. indoor ambient sensor (R6T)" }
-    - { mode: 0, registryID: 0x62, offset: 0, convid: 307, dataSize: 1, dataType: -1, label: "Data Enable/Disable" }
-    - { mode: 0, registryID: 0x62, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address" }
+    - { mode: 0, registryID: 0x62, offset: 0, convid: 307, dataSize: 1, dataType: -1, label: "Data Enable/Disable (0x62)" }
+    - { mode: 0, registryID: 0x62, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address (0x62)" }
     - { mode: 0, registryID: 0x62, offset: 2, convid: 307, dataSize: 1, dataType: -1, label: "Reheat ON/OFF" }
     - { mode: 0, registryID: 0x62, offset: 2, convid: 306, dataSize: 1, dataType: -1, label: "Storage ECO ON/OFF" }
     - { mode: 0, registryID: 0x62, offset: 2, convid: 305, dataSize: 1, dataType: -1, label: "Storage comfort ON/OFF" }
     - { mode: 0, registryID: 0x62, offset: 2, convid: 304, dataSize: 1, dataType: -1, label: "Powerful DHW Operation. ON/OFF" }
     - { mode: 0, registryID: 0x62, offset: 2, convid: 303, dataSize: 1, dataType: -1, label: "Space heating Operation ON/OFF" }
     - { mode: 0, registryID: 0x62, offset: 2, convid: 302, dataSize: 1, dataType: -1, label: "System OFF (ON:System off)" }
-    - { mode: 0, registryID: 0x62, offset: 2, convid: 301, dataSize: 1, dataType: -1, label: "Not in use" }
+    - { mode: 0, registryID: 0x62, offset: 2, convid: 301, dataSize: 1, dataType: -1, label: "Not in use (0x62 bit1)" }
     - { mode: 0, registryID: 0x62, offset: 2, convid: 300, dataSize: 1, dataType: -1, label: "Emergency (indoor) active/not active" }
     - { mode: 0, registryID: 0x62, offset: 3, convid: 105, dataSize: 2, dataType: 1, label: "LW setpoint (add)" }
     - { mode: 0, registryID: 0x62, offset: 5, convid: 105, dataSize: 2, dataType: 1, label: "RT setpoint" }
@@ -182,9 +182,9 @@ daikin_x10a:
     - { mode: 0, registryID: 0x62, offset: 7, convid: 301, dataSize: 1, dataType: -1, label: "Pwr consumption limit 2" }
     - { mode: 0, registryID: 0x62, offset: 7, convid: 300, dataSize: 1, dataType: -1, label: "Pwr consumption limit 1" }
     - { mode: 0, registryID: 0x62, offset: 8, convid: 307, dataSize: 1, dataType: -1, label: "None" }
-    - { mode: 0, registryID: 0x62, offset: 8, convid: 306, dataSize: 1, dataType: -1, label: "Not in use" }
-    - { mode: 0, registryID: 0x62, offset: 8, convid: 305, dataSize: 1, dataType: -1, label: "Not in use" }
-    - { mode: 0, registryID: 0x62, offset: 8, convid: 304, dataSize: 1, dataType: -1, label: "PHE Heater" }
+    - { mode: 0, registryID: 0x62, offset: 8, convid: 306, dataSize: 1, dataType: -1, label: "Not in use (0x62 bit6)" }
+    - { mode: 0, registryID: 0x62, offset: 8, convid: 305, dataSize: 1, dataType: -1, label: "Not in use (0x62 bit5)" }
+    - { mode: 0, registryID: 0x62, offset: 8, convid: 304, dataSize: 1, dataType: -1, label: "PHE Heater (0x62)" }
     - { mode: 0, registryID: 0x62, offset: 8, convid: 303, dataSize: 1, dataType: -1, label: "Tank preheat ON/OFF" }
     - { mode: 0, registryID: 0x62, offset: 8, convid: 302, dataSize: 1, dataType: -1, label: "Circulation pump operation" }
     - { mode: 0, registryID: 0x62, offset: 8, convid: 301, dataSize: 1, dataType: -1, label: "Alarm output" }
@@ -196,17 +196,17 @@ daikin_x10a:
     - { mode: 0, registryID: 0x62, offset: 14, convid: 152, dataSize: 1, dataType: -1, label: "[Future] 3 way Valve Mixing 2" }
     - { mode: 0, registryID: 0x62, offset: 15, convid: 105, dataSize: 2, dataType: 2, label: "Refrigerant pressure sensor" }
     - { mode: 0, registryID: 0x62, offset: 15, convid: 405, dataSize: 2, dataType: 1, label: "Pressure sensor(T)" }
-    - { mode: 0, registryID: 0x63, offset: 0, convid: 307, dataSize: 1, dataType: -1, label: "Data Enable/Disable" }
-    - { mode: 0, registryID: 0x63, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address" }
+    - { mode: 0, registryID: 0x63, offset: 0, convid: 307, dataSize: 1, dataType: -1, label: "Data Enable/Disable (0x63)" }
+    - { mode: 0, registryID: 0x63, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address (0x63)" }
     - { mode: 0, registryID: 0x63, offset: 2, convid: 215, dataSize: 1, dataType: -1, label: "I/U EEPROM (3rd digit)" }
     - { mode: 0, registryID: 0x63, offset: 3, convid: 215, dataSize: 1, dataType: -1, label: "I/U EEPROM (4th 5th digit)" }
     - { mode: 0, registryID: 0x63, offset: 4, convid: 215, dataSize: 1, dataType: -1, label: "I/U EEPROM (6th 7th digit)" }
     - { mode: 0, registryID: 0x63, offset: 5, convid: 215, dataSize: 1, dataType: -1, label: "I/U EEPROM (8th 9th digit)" }
     - { mode: 0, registryID: 0x63, offset: 6, convid: 215, dataSize: 1, dataType: -1, label: "I/U EEPROM (11th digit)" }
     - { mode: 0, registryID: 0x63, offset: 7, convid: 215, dataSize: 1, dataType: -1, label: "I/U EEPROM (12th digit)(rev.)" }
-    - { mode: 0, registryID: 0x63, offset: 8, convid: 215, dataSize: 1, dataType: -1, label: "Not in use" }
-    - { mode: 0, registryID: 0x63, offset: 9, convid: 215, dataSize: 1, dataType: -1, label: "Not in use" }
-    - { mode: 0, registryID: 0x63, offset: 10, convid: 215, dataSize: 1, dataType: -1, label: "Not in use" }
+    - { mode: 0, registryID: 0x63, offset: 8, convid: 215, dataSize: 1, dataType: -1, label: "Not in use (0x63 off8)" }
+    - { mode: 0, registryID: 0x63, offset: 9, convid: 215, dataSize: 1, dataType: -1, label: "Not in use (0x63 off9)" }
+    - { mode: 0, registryID: 0x63, offset: 10, convid: 215, dataSize: 1, dataType: -1, label: "Not in use (0x63 off10)" }
     - { mode: 0, registryID: 0x63, offset: 12, convid: 301, dataSize: 1, dataType: -1, label: "[RT space thermo ON/OFF] (bit1)" }
     - { mode: 0, registryID: 0x63, offset: 12, convid: 300, dataSize: 1, dataType: -1, label: "[RT space thermo ON/OFF] (bit0)" }
     - { mode: 0, registryID: 0x63, offset: 13, convid: 311, dataSize: 1, dataType: -1, label: "BUH output capacity" }
@@ -214,8 +214,8 @@ daikin_x10a:
     - { mode: 0, registryID: 0x63, offset: 15, convid: 161, dataSize: 1, dataType: -1, label: "Current measured by CT sensor of L2" }
     - { mode: 0, registryID: 0x63, offset: 16, convid: 307, dataSize: 1, dataType: -1, label: "HP Forced FG" }
     - { mode: 0, registryID: 0x63, offset: 16, convid: 161, dataSize: 1, dataType: -1, label: "Current measured by CT sensor of L3" }
-    - { mode: 0, registryID: 0x64, offset: 0, convid: 307, dataSize: 1, dataType: -1, label: "Data Enable/Disable" }
-    - { mode: 0, registryID: 0x64, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address" }
+    - { mode: 0, registryID: 0x64, offset: 0, convid: 307, dataSize: 1, dataType: -1, label: "Data Enable/Disable (0x64)" }
+    - { mode: 0, registryID: 0x64, offset: 1, convid: 152, dataSize: 1, dataType: -1, label: "Indoor Unit Address (0x64)" }
     - { mode: 0, registryID: 0x64, offset: 2, convid: 316, dataSize: 1, dataType: -1, label: "Hybrid Op. Mode" }
     - { mode: 0, registryID: 0x64, offset: 2, convid: 303, dataSize: 1, dataType: -1, label: "Boiler Operation Demand" }
     - { mode: 0, registryID: 0x64, offset: 2, convid: 302, dataSize: 1, dataType: -1, label: "Boiler DHW Demand" }
