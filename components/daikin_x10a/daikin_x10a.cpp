@@ -7,29 +7,16 @@
 #include <vector>
 #include <string>
 #include <set>
-#include <cstdlib>
+#include <cstdlib>  // for atof
 
 namespace esphome {
 namespace daikin_x10a {
-
-static const char *const TAG = "daikin_x10a";
 
 DaikinX10A::~DaikinX10A() = default;
 
 static constexpr uint32_t Serial_TimeoutInMilliseconds = 300;
 
-void DaikinX10A::setup() {
-  ESP_LOGI(TAG, "Daikin X10A component initialized with %u registers",
-           (unsigned)registers_.size());
-}
-
-void DaikinX10A::dump_config() {
-  ESP_LOGCONFIG(TAG, "Daikin X10A:");
-  ESP_LOGCONFIG(TAG, "  Registers: %u", (unsigned)registers_.size());
-  ESP_LOGCONFIG(TAG, "  Scan interval: %u ms", REGISTER_SCAN_INTERVAL_MS);
-}
-
-//__________ loop begin
+//__________________________________________________________________________________________________________________________ loop begin
 void DaikinX10A::loop() {
   static uint32_t start = 0;
   static bool initialDelayDone = false;
@@ -47,184 +34,163 @@ void DaikinX10A::loop() {
     this->FetchRegisters();
   }
 }
+//________________________________________________________________ loop end
 
-//__________ FetchRegisters begin
-// Called every REGISTER_SCAN_INTERVAL_MS milliseconds; loops over all registers
-// to fetch values from the heat pump via UART.
-// Both mode=0 and mode=1 registers are fetched; mode only controls HA sensor creation.
+//__________________________________________________________________________________________________________________________ FetchRegisters begin
+// FetchRegisters() is called every REGISTER_SCAN_INTERVAL_MS milliseconds, and loops over all registers with Mode==1 (read) to fetch their values from the HP via UART
 void DaikinX10A::FetchRegisters() {
-  std::set<uint8_t> fetched_registries;
+  std::set<uint8_t> fetched_registries;  // Track which registryIDs we've already requested in this scan cycle
 
-  for (const auto& selectedRegister : registers_) {
-    // Skip if we've already fetched this registryID in this scan cycle
-    if (fetched_registries.count(selectedRegister.registryID) > 0) {
-      continue;
-    }
+  for (const auto& selectedRegister : registers) {  //____________________________________ loop over all registers
+    if (selectedRegister.Mode == 1) {
+      // Skip if we've already fetched this registryID in this scan cycle
+      if (fetched_registries.count(selectedRegister.registryID) > 0) {
+        continue;
+      }
 
-    // Mark this registryID as fetched
-    fetched_registries.insert(selectedRegister.registryID);
+      // Mark this registryID as fetched
+      fetched_registries.insert(selectedRegister.registryID);
 
-    auto MyDaikinRequestPackage = daikin_package::MakeRequest(selectedRegister.registryID);
+      auto MyDaikinRequestPackage = daikin_package::MakeRequest(selectedRegister.registryID);
 
-    ESP_LOGD(TAG, "TX (%u): %s", (unsigned)MyDaikinRequestPackage.size(),
-             MyDaikinRequestPackage.ToHexString().c_str());
+      ESP_LOGI("ESPoeDaikin", "TX (%u): %s", (unsigned)MyDaikinRequestPackage.size(), MyDaikinRequestPackage.ToHexString().c_str());
 
-    this->flush();
-    for (uint8_t requestByte : MyDaikinRequestPackage.buffer()) this->write(requestByte);
+      this->flush();  // Clear the serial buffer before sending
+      for (uint8_t requestByte : MyDaikinRequestPackage.buffer()) this->write(requestByte);
 
-    daikin_package MyDaikinPackage(daikin_package::Mode::RECEIVE);
+      daikin_package MyDaikinPackage(daikin_package::Mode::RECEIVE);
 
-    const uint32_t FetchRegistersStartMilliseconds = millis();
-    size_t IncommingPackageSize = 3;
-    uint8_t target_registry = selectedRegister.registryID;
+      const uint32_t FetchRegistersStartMilliseconds = millis();
+      size_t IncommingPackageSize = 3;
+      uint8_t target_registry = selectedRegister.registryID;
+      
+      // Retry loop: keep reading until we get the CORRECT registry response or timeout
+      while (millis() - FetchRegistersStartMilliseconds < Serial_TimeoutInMilliseconds) {
+        if (!this->available()) continue;
+        
+        uint8_t incomingByte;
+        this->read_byte(&incomingByte);
 
-    // NOTE: This busy-wait loop blocks the main loop for up to
-    // Serial_TimeoutInMilliseconds per registry request. A non-blocking
-    // state machine approach would be more ESPHome-idiomatic but requires
-    // significant architectural changes.
-    while (millis() - FetchRegistersStartMilliseconds < Serial_TimeoutInMilliseconds) {
-      if (!this->available()) continue;
+        // Skip if not protocol marker (0x40)
+        if (MyDaikinPackage.empty() && incomingByte != 0x40) continue;
 
-      uint8_t incomingByte;
-      this->read_byte(&incomingByte);
+        MyDaikinPackage.buffer_mut().push_back(incomingByte);
 
-      // Skip if not protocol marker (0x40)
-      if (MyDaikinPackage.empty() && incomingByte != 0x40) continue;
-
-      MyDaikinPackage.buffer_mut().push_back(incomingByte);
-
-      // Once we have 2 bytes, check if it's the right registry
-      if (MyDaikinPackage.size() == 2) {
-        uint8_t received_registry = MyDaikinPackage.buffer()[1];
-        if (received_registry != target_registry) {
-          ESP_LOGD(TAG, "  Received registry 0x%02X (expected 0x%02X), discarding...",
-                   received_registry, target_registry);
-          MyDaikinPackage.clear();
-          continue;
+        // Once we have 2 bytes, check if it's the right registry
+        if (MyDaikinPackage.size() == 2) {
+          uint8_t received_registry = MyDaikinPackage.buffer()[1];
+          if (received_registry != target_registry) {
+            // Wrong registry - discard this packet and wait for the right one
+            ESP_LOGI("ESPoeDaikin", "  Received registry 0x%02X (expected 0x%02X), discarding...", received_registry, target_registry);
+            MyDaikinPackage.clear();
+            continue;
+          }
         }
+
+        // Once we have 3 bytes, we know the full length
+        if (MyDaikinPackage.HasMinimalHeader()) {
+          const size_t expectedSize = MyDaikinPackage.expected_size();
+          if (expectedSize > 0) IncommingPackageSize = expectedSize;
+        }
+
+        // Early error detection
+        if (MyDaikinPackage.is_error_frame()) {
+          ESP_LOGI("ESPoeDaikin", "HP returned error frame: %s", MyDaikinPackage.ToHexString().c_str());
+          return;
+        }
+
+        // Check if we have complete packet
+        if (MyDaikinPackage.size() >= IncommingPackageSize) break;
       }
 
-      // Once we have 3 bytes, we know the full length
-      if (MyDaikinPackage.HasMinimalHeader()) {
-        const size_t expectedSize = MyDaikinPackage.expected_size();
-        if (expectedSize > 0) IncommingPackageSize = expectedSize;
+      if (MyDaikinPackage.empty()) {
+        ESP_LOGI("ESPoeDaikin", "No valid response for registry 0x%02X (timeout)", target_registry);
+        continue;
       }
 
-      // Early error detection
-      if (MyDaikinPackage.is_error_frame()) {
-        ESP_LOGW(TAG, "HP returned error frame: %s", MyDaikinPackage.ToHexString().c_str());
-        return;
+      if (!MyDaikinPackage.Valid_CRC()) {
+        ESP_LOGI("ESPoeDaikin", "CRC mismatch (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.ToHexString().c_str());
+        continue;
       }
 
-      // Check if we have complete packet
-      if (MyDaikinPackage.size() >= IncommingPackageSize) break;
-    }
+      ESP_LOGI("ESPoeDaikin", "MyDaikinPackage (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.ToHexString().c_str());
+      last_requested_registry_ = selectedRegister.registryID;
+      this->process_frame_(MyDaikinPackage);
+    } // if mode==1
 
-    if (MyDaikinPackage.empty()) {
-      ESP_LOGD(TAG, "No valid response for registry 0x%02X (timeout)", target_registry);
-      continue;
-    }
-
-    if (!MyDaikinPackage.Valid_CRC()) {
-      ESP_LOGW(TAG, "CRC mismatch (%u): %s", (unsigned)MyDaikinPackage.size(),
-               MyDaikinPackage.ToHexString().c_str());
-      continue;
-    }
-
-    ESP_LOGD(TAG, "RX (%u): %s", (unsigned)MyDaikinPackage.size(),
-             MyDaikinPackage.ToHexString().c_str());
-    last_requested_registry_ = selectedRegister.registryID;
-    this->process_frame_(MyDaikinPackage);
-  }
+  } //____________________________________ end for loop loop over all registers
+  
 }
+//________________________________________________________________ FetchRegisters end
 
-//__________ process_frame_ begin
+//__________________________________________________________________________________________________________________________ process_frame_ begin
 void DaikinX10A::process_frame_(daikin_package &pkg) {
   if (!pkg.is_valid_protocol() || !pkg.Valid_CRC() || pkg.is_error_frame()) return;
 
   const auto &buffer = pkg.buffer();
   if (buffer.size() < 6) return;
 
+  // Registry ID is at byte 1
   uint8_t registry_id = buffer[1];
 
-  ESP_LOGD(TAG, "Decoding registry 0x%02X, data starts at byte 3", registry_id);
+  ESP_LOGI("ESPoeDaikin", "Decode registry_id=%d (0x%02X), protocol_header=3_bytes (0x40, regID, length), data_starts_at_byte_3", (int)registry_id, registry_id);
 
-  pkg.convert_registry_values(registry_id, registers_);
+  pkg.convert_registry_values(registry_id);  // pass the protocol convid
 
-  last_successful_read_ms_ = millis();
-
+  // log alle regels die bij deze registry horen (en non-empty asString hebben)
   int count = 0;
-  for (auto &registerEntry : registers_) {
+  for (auto &registerEntry : registers) {
     if ((uint8_t)registerEntry.registryID != registry_id) continue;
     if (registerEntry.asString[0] == '\0') continue;
-    ESP_LOGD(TAG, "  0x%02X | %s = %s", registry_id, registerEntry.label, registerEntry.asString);
+    ESP_LOGI("ESPoeDaikin", "0x%02X | %s = %s", registry_id, registerEntry.label, registerEntry.asString);
 
-    // Auto-update dynamic sensors for mode=1 registers
+    // AUTO-UPDATE DYNAMIC SENSORS for mode=1 registers
     if (registerEntry.Mode == 1) {
-      if (registerEntry.is_text_type()) {
-        update_text_sensor(registerEntry.label, registerEntry.asString);
-      } else {
-        float value = std::atof(registerEntry.asString);
-        update_sensor(registerEntry.label, value);
-      }
+      float value = std::atof(registerEntry.asString);
+      update_sensor(registerEntry.label, value);
     }
 
     count++;
   }
 
-  ESP_LOGD(TAG, "Decoded %d values for registry 0x%02X", count, registry_id);
-
-  // Fire update callbacks (used by climate entity, etc.)
-  for (auto &cb : update_callbacks_) {
-    cb();
-  }
+  ESP_LOGI("ESPoeDaikin", "Decoded %d values for registry 0x%02X", count, registry_id);
 }
+//________________________________________________________________ process_frame_ end
 
-//__________ add_register begin
+//__________________________________________________________________________________________________________________________ add_register begin
 void DaikinX10A::add_register(int mode, int convid, int offset, int registryID,
                              int dataSize, int dataType, const char* label) {
-  registers_.emplace_back(mode, convid, offset, registryID, dataSize, dataType, label);
+  registers.emplace_back(mode, convid, offset, registryID, dataSize, dataType, label);
 }
+//________________________________________________________________ add_register end
 
-//__________ get_register_value begin
+//__________________________________________________________________________________________________________________________ get_register_value begin
 std::string DaikinX10A::get_register_value(const std::string& label) const {
-  for (const auto &reg : registers_) {
-    if (reg.label && label == reg.label && reg.asString[0] != '\0') {
+  for (const auto &reg : registers) {
+    if (reg.label && reg.label == label && reg.asString[0] != '\0') {
       return std::string(reg.asString);
     }
   }
-  return "";
+  return "";  // Return empty string if register not found or value is empty
 }
+//________________________________________________________________ get_register_value end
 
-//__________ register_dynamic_sensor begin
+//__________________________________________________________________________________________________________________________ register_dynamic_sensor begin
 void DaikinX10A::register_dynamic_sensor(const std::string& label, sensor::Sensor *sens) {
   dynamic_sensors_[label] = sens;
-  ESP_LOGI(TAG, "Registered dynamic sensor: %s", label.c_str());
+  ESP_LOGI("ESPoeDaikin", "Registered dynamic sensor: %s", label.c_str());
 }
+//________________________________________________________________ register_dynamic_sensor end
 
-//__________ update_sensor begin
+//__________________________________________________________________________________________________________________________ update_sensor begin
 void DaikinX10A::update_sensor(const std::string& label, float value) {
   auto it = dynamic_sensors_.find(label);
   if (it != dynamic_sensors_.end() && it->second != nullptr) {
     it->second->publish_state(value);
-    ESP_LOGV(TAG, "Updated sensor '%s' = %.1f", label.c_str(), value);
+    ESP_LOGD("ESPoeDaikin", "Updated sensor '%s' = %.1f", label.c_str(), value);
   }
 }
-
-//__________ register_dynamic_text_sensor begin
-void DaikinX10A::register_dynamic_text_sensor(const std::string& label, text_sensor::TextSensor *sens) {
-  dynamic_text_sensors_[label] = sens;
-  ESP_LOGI(TAG, "Registered dynamic text sensor: %s", label.c_str());
-}
-
-//__________ update_text_sensor begin
-void DaikinX10A::update_text_sensor(const std::string& label, const std::string& value) {
-  auto it = dynamic_text_sensors_.find(label);
-  if (it != dynamic_text_sensors_.end() && it->second != nullptr) {
-    it->second->publish_state(value);
-    ESP_LOGV(TAG, "Updated text sensor '%s' = %s", label.c_str(), value.c_str());
-  }
-}
+//________________________________________________________________ update_sensor end
 
 }  // namespace daikin_x10a
 }  // namespace esphome

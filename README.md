@@ -1,248 +1,120 @@
-# ESPHome POE Daikin Altherma
+# ESP Home POE Daikin Alterma
 
-ESPHome-based controller for Daikin Altherma heat pumps, built for the M5Stack POE ESP32 with 4-channel relay unit. Communicates with the heat pump via the X10A serial port and controls operation mode and smart grid features via relay contacts.
+## Jan 2026 \- Dennis
+# 
 
-Based on the original work by [Raomin/ESPAltherma](https://github.com/raomin/ESPAltherma).
+[**What it does;	1**](#what-it-does;)
+
+[**Features;	2**](#features;)
+
+[**Disclaimer;	2**](#disclaimer;)
+
+[**Requirements;	2**](#requirements;)
+
+[**How to make it yourself;	2**](#hardware-installation;)
+
+[**How to update	6**](#how-to-update)
+
+[**Background;	6**](#background;)
+
+[**Still to do;	7**](#still-to-do;)
+
+# 
+
+# 
+
+# What it does; {#what-it-does;}
+
+* read many parameters of your Daikin Alterma heatpump from Home Assistant  
+* set the operation mode of your heat pump \[off\]/\[heat\]/\[cool\] from Home Assistant  
+* set the smartgrid feature from Home Assistant
 
 ![][image1]
 
-## Features
+# Features; {#features;}
 
-- **Read 200+ heat pump parameters** via the Daikin X10A serial protocol (UART, 9600 baud, EVEN parity)
-- **Climate entity** in Home Assistant with OFF/HEAT/COOL mode control via relays
-- **Energy monitoring** — water flow rate, delta-T, thermal power, electrical power (CT sensors), and COP calculation
-- **Diagnostics** — communication status, error reporting (indoor + outdoor unit), operation mode
-- **Web dashboard** — built-in web server on port 80 for direct device access
-- **Smart Grid control** — 4 modes: free running, forced off, recommended on, forced on
-- **Power over Ethernet** — no WiFi, no batteries, just a cable
-- **Auto-sensor creation** — registers marked `mode: 1` automatically create Home Assistant sensors (numeric or text)
+* Build on ESP Home, easier to build, easier to update  
+* Build for a M5 stack POE (power over ethernet) device, because ‘a cable is stable’  
+* Build for the m5 stack 4 channel relay, because standardized and state restore
 
-## Disclaimer
+# Disclaimer; {#disclaimer;}
 
-This project is provided as-is for educational and experimental purposes only. Use at your own risk. The authors make no guarantees regarding correctness, safety, or reliability. Improper use may result in equipment damage. Built and tested with the Daikin Altherma 3 R F.
+This project is provided as-is and is intended for educational and experimental purposes only.  
+Use of this software and any related information is entirely at your own risk. The authors and contributors make no guarantees regarding correctness, safety, reliability, or suitability for any particular purpose. Improper use may result in malfunction, damage to equipment, data loss, or other unintended consequences. No support, maintenance, or updates are provided.By using this project, you agree that the authors and contributors are not liable for any damages, losses, or issues arising from its use. This project was built for the Daikin Altherma 3 R F.
 
-## Requirements
+# Requirements; {#requirements;}
 
-| Item | SKU |
-|------|-----|
-| M5Stack ESP32 Ethernet Unit with PoE | U138 |
-| M5Stack 4-Relay Unit | U097 |
-| M5Stack ESP32 Downloader Kit | A105 (needed for initial flash) |
-| Home Assistant | — |
-| PoE switch + ethernet cable | — |
-| Compatible Daikin Altherma heat pump | — |
-| Docker (for compilation) | — |
-| ESPHome **2023.5+** | — |
+* M5 stack ESP32 Ethernet Unit with PoE / SKU: U138  
+* M5 stack 4-Relay Unit / SKU: U097  
+* M5 stack ESP32 Downloader Kit / SKU: A105 (yes you really need it)  
+* Home Assistant  
+* A POE switch with cable  
+* A compatible heat pump  
+* Internet connection and a laptop/computer  
+  
 
-## Hardware Installation
 
-### Serial connection (X10A port)
+# Hardware installation; {#hardware-installation;}
 
-| Heat Pump X10A port ![][image2] Pin 1 is marked — do not connect it (we use PoE for power). | M5Stack POE ESP32 ![][image3] |
-|---|---|
-| PIN 2 = TX | Onboard RX |
-| PIN 3 = RX | Onboard TX |
-| PIN 5 = GND | Onboard GND |
+Follow these steps to get everything working;
 
-### Thermostat and Smart Grid (X5M port)
+1. Buy the hardware, see the requirements  
+2. Connecting the wires.  
+   Pictures and connection scheme are for the models; Daikin Altherma 3 R F ERGA04EV3 ERGA06EV3H ERGA08EV3H ERGA04EV3A ERGA06EV3A ERGA08EV3A EHVH04S18E6V EHVH04S23E6V EHVH08S18E6V EHVH08S23E6V EHVH08S18E9W EHVH08S23E9W EHVX04S18E3V EHVX04S18E6V EHVX04S23E3V EHVX04S23E6V EHVX08S18E6V EHVX08S23E6V EHVX08S18E9W EHVX08S23E9W  
+   Double check the manual for your heat pump if this information also applies for your situation. These steps also require opening the heat pump, see the manual of the heat pump on how to do this in a safe way. Ignoring the safety information could lead to damage or risking an electrical shock. 
 
-Uses the relay NO (Normal Open) contacts. If the relay loses power, the heat pump stays in a safe state.
+     
+3. For the serial connection;
 
-| Heat Pump X5M port ![][image4] | M5Stack relay ![][image5] |
-|---|---|
-| X5M port 5 — Smart Grid 1 | Relay 1 NO |
-| X5M port 6 — Smart Grid 1 | Relay 1 NO |
-| X5M port 9 — Smart Grid 2 | Relay 2 NO |
-| X5M port 10 — Smart Grid 2 | Relay 2 NO |
-| X5M port 7 — Thermostat | Relay 3 NO |
-| X5M port 8 — Thermostat | Relay 3 NO |
+| Heat Pump X10A poort ![][image2] Notice the little encircled one, indicating PIN 1\. Do not connect PIN 1, we use POE for power. | M5 stack POE ESP32![][image3]  |
+| ----- | ----- |
+| PIN 2 \=  TX | Onboard RX |
+| PIN 3 \= RX | Onboard TX |
+| PIN 5 \= GND | Onboard GND |
 
-### Mode selection (X2M port)
+     
+   
 
-Only needed if your heat pump supports cooling.
+# For thermostat and smart-grid;
 
-| X2M block ![][image6] | M5Stack relay ![][image5] |
-|---|---|
-| X2M port 7 | Relay 4 NO |
-| X2M port 9 | Relay 4 NO |
+We use the relay’s NO \= Normal Open port. If the relay is without power, the heat pump won’t go into an energy hungry mode. The external thermostat only works 
 
-## Software Setup
+| Heat Pump X5M poort![][image4] | M5 stack relay![][image5] |
+| :---- | :---- |
+| X5M poort 5 smart grid 1 | 1 NO |
+| X5M poort 6 smart grid 1 | 1 NO |
+| X5M poort 9 smart grid 2 | 2 NO |
+| X5M poort 10 smart grid 2 | 2 NO |
+| X5M poort 7 thermostat | 3 NO |
+| X5M poort 8 thermostat | 3 NO |
 
-### Project structure
+Mode selection;  
+This only works if your heat pump can also cool.
 
-```
-├── m5poe.yaml                      # Base config (hardware, sensors, climate, diagnostics)
-├── m5poe_dev.yaml                  # Local dev config (for compilation/testing)
-├── secrets.yaml                    # API keys and passwords (not committed)
-├── components/
-│   └── daikin_x10a/
-│       ├── __init__.py             # ESPHome component config + codegen
-│       ├── climate.py              # Climate platform config
-│       ├── daikin_x10a.h           # Main component header
-│       ├── daikin_x10a.cpp         # Main component implementation
-│       ├── daikin_x10a_climate.h   # Climate entity header
-│       ├── daikin_x10a_climate.cpp # Climate entity implementation
-│       ├── daikin_package.h        # Serial protocol packet handling
-│       ├── register_definitions.h  # Register data structure
-│       └── m5poe_user.yaml         # User config with all register definitions
-```
+| X2M block ![][image6] | M5 stack relay![][image5] |
+| :---- | :---- |
+| X2M poort 7 | 4 NO |
+| X2M poort 9 | 4 NO |
 
-### 1. Create secrets.yaml
+# Software installation
 
-```yaml
-api_encryption_key: "<your-32-byte-base64-key>"
-ota_password: "<your-ota-password>"
-```
+1. Set up your ESP32 POE unit to have a static IP. preferably on your DHCP server.   
+2. Get ESP Home on the POE device and into Home Assistant using the ESP32 downloader kit. I’m not gonna explain that here, plenty of resources on the net on how to do that.   
+3. Paste the contents of the YML file, except your API key  
+4. Press install in ESP Home from Home Assistant
 
-Generate a key with:
-```bash
-python3 -c "import base64, os; print(base64.b64encode(os.urandom(32)).decode())"
-```
+# How to update {#how-to-update}
 
-### 2. Compile with Docker
+1. In Home Assistant, ESP Home, Clean build files  
+2. Install
 
-No local ESPHome installation needed — just Docker:
+# Background; {#background;}
 
-```bash
-# Compile the firmware
-docker run --rm --network host \
-  -v /path/to/this/repo:/config \
-  ghcr.io/esphome/esphome compile m5poe_dev.yaml
-```
+A few years ago when [https://github.com/raomin/ESPAltherma](https://github.com/raomin/ESPAltherma) just came out, I modified it to work with the 4 channel relay from the M5 stack. After running stable for a few years, I’ve forked ESPAltherma again because it had been updated, and I had to redo my alterations for the 4 channel relay. After recompiling, I got a lot of Wifi problems. Since my house is cold without this software, I was in need of a more reliable solution. And I’m a big fan of POE.
 
-First build takes ~4 minutes (downloads toolchain). Subsequent builds take ~30 seconds.
+So based on the original code of Raomin, I’ve created this ESP Home version,this project would not be possible without the O.G.; [https://github.com/raomin/ESPAltherma](https://github.com/raomin/ESPAltherma)
 
-The compiled firmware is at:
-```
-.esphome/build/m5poe/.pioenvs/m5poe/firmware.ota.bin     # For OTA updates
-.esphome/build/m5poe/.pioenvs/m5poe/firmware.factory.bin  # For initial flash
-```
-
-### 3. Flash the firmware
-
-**OTA flash** (device already running ESPHome, over ethernet):
-```bash
-docker run --rm --network host \
-  -v /path/to/this/repo:/config \
-  ghcr.io/esphome/esphome upload m5poe_dev.yaml --device <device-ip>
-```
-Takes ~30-60 seconds over ethernet. The device reboots automatically.
-
-**USB flash** (initial setup, using the M5Stack Downloader Kit):
-```bash
-docker run --rm --network host \
-  -v /path/to/this/repo:/config \
-  --device /dev/ttyUSB0 \
-  ghcr.io/esphome/esphome upload m5poe_dev.yaml
-```
-
-**Compile + flash in one step:**
-```bash
-docker run --rm --network host \
-  -v /path/to/this/repo:/config \
-  ghcr.io/esphome/esphome run m5poe_dev.yaml --device <device-ip>
-```
-
-### 4. Access the device
-
-- **Home Assistant**: The device auto-discovers via the ESPHome integration
-- **Web dashboard**: Open `http://<device-ip>/` in a browser
-- **Logs**: `docker run --rm --network host -v /path/to/this/repo:/config ghcr.io/esphome/esphome logs m5poe_dev.yaml --device <device-ip>`
-
-## How to Update
-
-```bash
-# Recompile and flash over the network
-docker run --rm --network host \
-  -v /path/to/this/repo:/config \
-  ghcr.io/esphome/esphome run m5poe_dev.yaml --device <device-ip>
-```
-
-No cache clearing needed. OTA updates preserve device preferences (relay states, etc.). New entities may appear as disabled in Home Assistant — enable them in the device page.
-
-If you hit build issues after an ESPHome version upgrade, clean the build cache:
-```bash
-rm -rf .esphome/build
-```
-
-## Entities Reference
-
-### Climate
-| Entity | Description |
-|--------|-------------|
-| Daikin Altherma | OFF/HEAT/COOL mode control with current water temperature |
-
-### Sensors
-| Entity | Unit | Source |
-|--------|------|--------|
-| Leaving water temp. before BUH | °C | Register R1T (0x61) |
-| Leaving water temp. after BUH | °C | Register R2T (0x61) |
-| Refrig. Temp. liquid side | °C | Register R3T (0x61) |
-| Inlet water temp. | °C | Register R4T (0x61) |
-| DHW tank temp. | °C | Register R5T (0x61) |
-| Indoor ambient temp. | °C | Register R1T (0x61) |
-| Ext. indoor ambient sensor | °C | Register R6T (0x61) |
-| Outdoor air temp. | °C | Register R1T (0x20) |
-| Water flow rate | l/min | Register (0x62) |
-| Delta-T | °C | Computed: leaving - inlet |
-| Thermal power | kW | Computed: flow * deltaT * 4.186 / 60 |
-| CT sensor L1, L2, L3 | A | Register (0x63) |
-| Electrical power | kW | Computed: (L1+L2+L3) * 230V |
-| COP | — | Computed: thermal / electrical |
-| LW setpoint (main) | °C | Register (0x60) |
-| DHW setpoint | °C | Register (0x60) |
-
-### Text Sensors
-| Entity | Description |
-|--------|-------------|
-| Operation Mode | Current HP mode (Heating, Cooling, Auto, etc.) |
-| Thermostat ON/OFF | Thermostat status |
-| Error status OU | Outdoor unit error type + code |
-| Error status IU | Indoor unit error type + code |
-| IU operation mode | Indoor unit operation mode |
-
-### Controls
-| Entity | Options |
-|--------|---------|
-| Heatpump mode | Off, Cooling, Heating |
-| Heatpump smartgrid | Free running, Forced off, Recommended on, Forced on |
-
-### Diagnostics
-| Entity | Type | Description |
-|--------|------|-------------|
-| Daikin communication | Binary sensor | ON if data received in last 120s |
-
-## Register System
-
-Registers are defined in `m5poe_user.yaml` with the following fields:
-
-```yaml
-- { mode: 0, registryID: 0x61, offset: 2, convid: 105, dataSize: 2, dataType: 1, label: "Leaving water temp. before BUH (R1T)" }
-```
-
-| Field | Description |
-|-------|-------------|
-| `mode` | `0` = read only, `1` = read + auto-create HA sensor/text_sensor |
-| `registryID` | X10A registry address (e.g., `0x61` for indoor sensor data) |
-| `offset` | Byte offset within the registry response |
-| `convid` | Conversion function ID (e.g., `105` = signed LE * 0.1, `217` = operation mode text) |
-| `dataSize` | Number of bytes to read (1 or 2) |
-| `dataType` | Data type hint (`1` = temperature, `2` = pressure, `-1` = other) |
-| `label` | Human-readable name (used as HA entity name for mode=1) |
-
-For mode=1 registers, the component auto-detects text vs numeric convids:
-- **Text convids** (200, 203, 204, 217, 300-307, 315, 316) create `text_sensor` entities
-- **Numeric convids** create `sensor` entities with optional `unit`, `device_class`, `accuracy_decimals`
-
-## Background
-
-A few years ago when [ESPAltherma](https://github.com/raomin/ESPAltherma) came out, Dennis modified it to work with the M5Stack 4-channel relay. After years of stable operation, a rebuild brought WiFi reliability issues. Since a cold house is not an option, this ESPHome-based POE version was created for maximum reliability.
-
-This project would not be possible without the original work by [Raomin](https://github.com/raomin/ESPAltherma).
-
-## License
-
-This project is provided as-is for educational and experimental use.
+# Still to do; {#still-to-do;}
 
 Support for other devices/other languages/support for the Daikin S protocol.
 

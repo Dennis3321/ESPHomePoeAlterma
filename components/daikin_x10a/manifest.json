@@ -2,6 +2,5 @@
   "name": "daikin_x10a",
   "version": "0.1.0",
   "dependencies": ["uart"],
-  "codeowners": ["@local"],
-  "esphome": ">=2023.5.0"
+  "codeowners": ["@local"]
 }
