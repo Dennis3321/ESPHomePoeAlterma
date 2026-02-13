@@ -41,12 +41,32 @@ class DaikinX10A : public uart::UARTDevice, public Component {
   bool debug_mode_{false};
   std::vector<uint8_t> buffer_;
   uint8_t last_requested_registry_{0};
+  std::vector<Register> registers_;
 
   // Map of label -> sensor for dynamic sensors
   std::map<std::string, sensor::Sensor*> dynamic_sensors_;
   std::map<std::string, text_sensor::TextSensor*> dynamic_text_sensors_;
 
   void process_frame_(daikin_package &pkg);
+
+  // Conversion logic (moved from daikin_package)
+  void convert_registry_values_(const daikin_package &pkg, uint8_t reg_id);
+  static void convert_one_(Register &def, const uint8_t *data);
+
+  // Numeric helpers
+  static unsigned short getUnsignedValue_(const uint8_t *data, int dataSize, int cnvflg);
+  static short getSignedValue_(const uint8_t *data, int datasize, int cnvflg);
+  static double convertPress2Temp_(double data);
+
+  // Table converters
+  static void convertTable200_(const uint8_t *data, char *ret);
+  static void convertTable203_(const uint8_t *data, char *ret);
+  static void convertTable204_(const uint8_t *data, char *ret);
+  static double convertTable312_(const uint8_t *data);
+  static void convertTable315_(const uint8_t *data, char *ret);
+  static void convertTable316_(const uint8_t *data, char *ret);
+  static void convertTable217_(const uint8_t *data, char *ret);
+  static void convertTable300_(const uint8_t *data, int tableID, char *ret);
 };
 
 }  // namespace daikin_x10a

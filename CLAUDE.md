@@ -31,11 +31,12 @@ This is an ESPHome-based integration for Daikin Altherma heat pumps, specificall
 ESPHomePoeAlterma/
 ├── components/
 │   └── daikin_x10a/           # Custom ESPHome component
-│       ├── daikin_x10a.cpp    # Main component implementation
-│       ├── daikin_x10a.h      # Component header
-│       ├── daikin_package.h   # Packet handling
-│       ├── register_definitions.cpp  # Register mappings
-│       ├── register_definitions.h
+│       ├── daikin_x10a.cpp    # Main component: UART communication, register
+│       │                      #   management, AND conversion logic
+│       ├── daikin_x10a.h      # Component header (DaikinX10A class)
+│       ├── daikin_package.h   # Packet handling only (buffer, CRC, protocol parsing)
+│       ├── register_definitions.cpp  # Register struct definition
+│       ├── register_definitions.h    # Register struct + scan interval constant
 │       ├── manifest.json
 │       └── m5poe_user.yaml    # Extended configuration example
 ├── m5poe.yaml                 # Base ESPHome configuration
@@ -115,7 +116,9 @@ registers: array in m5poe_user.yaml
 
 ### Custom Component (daikin_x10a)
 - Written in C++ following ESPHome component architecture
-- Implements X10A serial protocol for Daikin communication
+- `DaikinX10A` class owns all state: registers (`registers_` member), sensors, and conversion logic
+- `daikin_package` is a pure packet class: buffer management, CRC, protocol parsing — no register/conversion knowledge
+- Conversion functions (`convert_registry_values_`, `convert_one_`, `convertTable*_`) are methods of `DaikinX10A`
 - Exposes register values via `get_register_value()` method
 - Supports custom register definitions via YAML configuration
 - Register definition format: `{ mode, registryID, offset, convid, dataSize, dataType, label }`
@@ -274,7 +277,7 @@ daikin_x10a:
 ### Debug Mode
 The component has a runtime debug mode controlled via a Home Assistant switch ("Daikin Debug Mode"):
 - **Off (default):** No UART logging — keeps ESPHome logs clean
-- **On:** Enables all `ESP_LOGI` logging in `FetchRegisters()` and `process_frame_()` (TX/RX packets, registry decoding, CRC errors, etc.)
+- **On:** Enables all `ESP_LOGI` logging in `FetchRegisters()`, `process_frame_()`, and `convert_registry_values_()` (TX/RX packets, registry decoding, conversion details, CRC errors, etc.)
 - Startup logs (sensor registration) always appear regardless of debug mode
 - Implemented via `debug_mode_` bool in `DaikinX10A` class, toggled by `set_debug_mode(bool)`
 - Switch defined in `m5poe.yaml` as a template switch with `restore_mode: RESTORE_DEFAULT_OFF`
