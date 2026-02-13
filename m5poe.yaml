@@ -119,6 +119,17 @@ select:
             id(r4).turn_on();
           }
 
+sensor:
+  - platform: uptime
+    name: "m5poe uptime"
+
+# in this array you can configure which sensors whill be polled from the heatpump.
+# Change the mode from 0 to 1 for each line / sensor you want to read from the heat pump;
+# For example, if you wish to read the operation mode change;
+# - { mode: 0, registryID: 0x10, offset: 0, convid: 217, dataSize: 1, dataType: -1, label: "Operation Mode" }
+# to;
+# - { mode: 1, registryID: 0x10, offset: 0, convid: 217, dataSize: 1, dataType: -1, label: "Operation Mode" }
+
 daikin_x10a:
   id: daikin_comp
   uart_id: daikin_uart
@@ -244,7 +255,7 @@ daikin_x10a:
     - { mode: 0, registryID: 0x60, offset: 4, convid: 152, dataSize: 1, dataType: -1, label: "Error detailed code" }
     - { mode: 0, registryID: 0x60, offset: 5, convid: 203, dataSize: 1, dataType: -1, label: "Error type" }
     - { mode: 0, registryID: 0x60, offset: 6, convid: 219, dataSize: 1, dataType: -1, label: "I/U capacity code" }
-    - { mode: 0, registryID: 0x60, offset: 7, convid: 105, dataSize: 2, dataType: 1, label: "DHW setpoint" }
+    - { mode: 1, registryID: 0x60, offset: 7, convid: 105, dataSize: 2, dataType: 1, label: "DHW setpoint" }
     - { mode: 0, registryID: 0x60, offset: 9, convid: 105, dataSize: 2, dataType: 1, label: "LW setpoint (main)" }
     - { mode: 0, registryID: 0x60, offset: 11, convid: 307, dataSize: 1, dataType: -1, label: "Water flow switch" }
     - { mode: 0, registryID: 0x60, offset: 11, convid: 306, dataSize: 1, dataType: -1, label: "Thermal protector (Q1L) BUH" }
@@ -272,7 +283,7 @@ daikin_x10a:
     - { mode: 1, registryID: 0x61, offset: 4, convid: 105, dataSize: 2, dataType: 1, label: "Leaving water temp. after BUH (R2T)" }
     - { mode: 0, registryID: 0x61, offset: 6, convid: 105, dataSize: 2, dataType: 1, label: "Refrig. Temp. liquid side (R3T)" }
     - { mode: 0, registryID: 0x61, offset: 8, convid: 105, dataSize: 2, dataType: 1, label: "Inlet water temp.(R4T)" }
-    - { mode: 0, registryID: 0x61, offset: 10, convid: 105, dataSize: 2, dataType: 1, label: "DHW tank temp. (R5T)" }
+    - { mode: 1, registryID: 0x61, offset: 10, convid: 105, dataSize: 2, dataType: 1, label: "DHW tank temp. (R5T)" }
     - { mode: 0, registryID: 0x61, offset: 12, convid: 105, dataSize: 2, dataType: 1, label: "Indoor ambient temp. (R1T)" }
     - { mode: 0, registryID: 0x61, offset: 14, convid: 105, dataSize: 2, dataType: 1, label: "Ext. indoor ambient sensor (R6T)" }
     - { mode: 0, registryID: 0x62, offset: 0, convid: 307, dataSize: 1, dataType: -1, label: "Data Enable/Disable" }
@@ -280,7 +291,7 @@ daikin_x10a:
     - { mode: 0, registryID: 0x62, offset: 2, convid: 307, dataSize: 1, dataType: -1, label: "Reheat ON/OFF" }
     - { mode: 0, registryID: 0x62, offset: 2, convid: 306, dataSize: 1, dataType: -1, label: "Storage ECO ON/OFF" }
     - { mode: 0, registryID: 0x62, offset: 2, convid: 305, dataSize: 1, dataType: -1, label: "Storage comfort ON/OFF" }
-    - { mode: 0, registryID: 0x62, offset: 2, convid: 304, dataSize: 1, dataType: -1, label: "Powerful DHW Operation. ON/OFF" }
+    - { mode: 1, registryID: 0x62, offset: 2, convid: 304, dataSize: 1, dataType: -1, label: "Powerful DHW Operation. ON/OFF" }
     - { mode: 0, registryID: 0x62, offset: 2, convid: 303, dataSize: 1, dataType: -1, label: "Space heating Operation ON/OFF" }
     - { mode: 0, registryID: 0x62, offset: 2, convid: 302, dataSize: 1, dataType: -1, label: "System OFF (ON:System off)" }
     - { mode: 0, registryID: 0x62, offset: 2, convid: 301, dataSize: 1, dataType: -1, label: "Not in use" }
