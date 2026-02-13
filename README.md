@@ -77,7 +77,7 @@ Follow these steps to get everything working;
 
 # For thermostat and smart-grid;
 
-We use the relay’s NO \= Normal Open port. If the relay is without power, the heat pump won’t go into an energy hungry mode. The external thermostat only works 
+We use the relay’s NO \= Normal Open port. If the relay is without power, the heat pump won’t go into an energy hungry mode. That's the red centre connection on the m5 4 channel relay.  
 
 | Heat Pump X5M poort![][image4] | M5 stack relay![][image5] |
 | :---- | :---- |
