@@ -8,6 +8,7 @@ This is an ESPHome-based integration for Daikin Altherma heat pumps, specificall
 - Read multiple heat pump parameters (temperatures, operation modes, etc.)
 - Control operation modes: Off/Heat/Cool
 - Smart grid feature support (4 modes: Free running, Forced off, Recommended on, Forced on)
+- Runtime debug mode toggle via Home Assistant switch
 - Built on ESPHome for easy configuration and updates
 - Uses PoE for reliable power and network connectivity
 
@@ -270,8 +271,16 @@ daikin_x10a:
 - Simply change `mode: 0` to `mode: 1` → sensor appears in Home Assistant!
 - No manual template sensor definitions needed
 
-### Debugging UART Communication
-Uncomment debug section in `m5poe.yaml`:
+### Debug Mode
+The component has a runtime debug mode controlled via a Home Assistant switch ("Daikin Debug Mode"):
+- **Off (default):** No UART logging — keeps ESPHome logs clean
+- **On:** Enables all `ESP_LOGI` logging in `FetchRegisters()` and `process_frame_()` (TX/RX packets, registry decoding, CRC errors, etc.)
+- Startup logs (sensor registration) always appear regardless of debug mode
+- Implemented via `debug_mode_` bool in `DaikinX10A` class, toggled by `set_debug_mode(bool)`
+- Switch defined in `m5poe.yaml` as a template switch with `restore_mode: RESTORE_DEFAULT_OFF`
+
+### Debugging UART Communication (low-level)
+Uncomment debug section in `m5poe.yaml` for raw UART byte logging:
 ```yaml
 #debug:
 #  direction: BOTH

@@ -74,6 +74,18 @@ switch:
       internal: true
       restore_mode: RESTORE_DEFAULT_OFF
 
+  - platform: template
+    name: "Daikin Debug Mode"
+    id: daikin_debug_mode
+    optimistic: true
+    restore_mode: RESTORE_DEFAULT_OFF
+    turn_on_action:
+      - lambda: |-
+          id(daikin_comp).set_debug_mode(true);
+    turn_off_action:
+      - lambda: |-
+          id(daikin_comp).set_debug_mode(false);
+
 select:
   - platform: template
     name: "Heatpump mode"

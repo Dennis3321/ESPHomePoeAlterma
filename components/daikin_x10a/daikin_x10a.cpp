@@ -53,7 +53,7 @@ void DaikinX10A::FetchRegisters() {
 
       auto MyDaikinRequestPackage = daikin_package::MakeRequest(selectedRegister.registryID);
 
-      ESP_LOGI("ESPoeDaikin", "TX (%u): %s", (unsigned)MyDaikinRequestPackage.size(), MyDaikinRequestPackage.ToHexString().c_str());
+      if (debug_mode_) ESP_LOGI("ESPoeDaikin", "TX (%u): %s", (unsigned)MyDaikinRequestPackage.size(), MyDaikinRequestPackage.ToHexString().c_str());
 
       this->flush();  // Clear the serial buffer before sending
       for (uint8_t requestByte : MyDaikinRequestPackage.buffer()) this->write(requestByte);
@@ -81,7 +81,7 @@ void DaikinX10A::FetchRegisters() {
           uint8_t received_registry = MyDaikinPackage.buffer()[1];
           if (received_registry != target_registry) {
             // Wrong registry - discard this packet and wait for the right one
-            ESP_LOGI("ESPoeDaikin", "  Received registry 0x%02X (expected 0x%02X), discarding...", received_registry, target_registry);
+            if (debug_mode_) ESP_LOGI("ESPoeDaikin", "  Received registry 0x%02X (expected 0x%02X), discarding...", received_registry, target_registry);
             MyDaikinPackage.clear();
             continue;
           }
@@ -95,7 +95,7 @@ void DaikinX10A::FetchRegisters() {
 
         // Early error detection
         if (MyDaikinPackage.is_error_frame()) {
-          ESP_LOGI("ESPoeDaikin", "HP returned error frame: %s", MyDaikinPackage.ToHexString().c_str());
+          if (debug_mode_) ESP_LOGI("ESPoeDaikin", "HP returned error frame: %s", MyDaikinPackage.ToHexString().c_str());
           return;
         }
 
@@ -104,16 +104,16 @@ void DaikinX10A::FetchRegisters() {
       }
 
       if (MyDaikinPackage.empty()) {
-        ESP_LOGI("ESPoeDaikin", "No valid response for registry 0x%02X (timeout)", target_registry);
+        if (debug_mode_) ESP_LOGI("ESPoeDaikin", "No valid response for registry 0x%02X (timeout)", target_registry);
         continue;
       }
 
       if (!MyDaikinPackage.Valid_CRC()) {
-        ESP_LOGI("ESPoeDaikin", "CRC mismatch (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.ToHexString().c_str());
+        if (debug_mode_) ESP_LOGI("ESPoeDaikin", "CRC mismatch (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.ToHexString().c_str());
         continue;
       }
 
-      ESP_LOGI("ESPoeDaikin", "MyDaikinPackage (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.ToHexString().c_str());
+      if (debug_mode_) ESP_LOGI("ESPoeDaikin", "MyDaikinPackage (%u): %s", (unsigned)MyDaikinPackage.size(), MyDaikinPackage.ToHexString().c_str());
       last_requested_registry_ = selectedRegister.registryID;
       this->process_frame_(MyDaikinPackage);
     } // if mode==1
@@ -133,7 +133,7 @@ void DaikinX10A::process_frame_(daikin_package &pkg) {
   // Registry ID is at byte 1
   uint8_t registry_id = buffer[1];
 
-  ESP_LOGI("ESPoeDaikin", "Decode registry_id=%d (0x%02X), protocol_header=3_bytes (0x40, regID, length), data_starts_at_byte_3", (int)registry_id, registry_id);
+  if (debug_mode_) ESP_LOGI("ESPoeDaikin", "Decode registry_id=%d (0x%02X), protocol_header=3_bytes (0x40, regID, length), data_starts_at_byte_3", (int)registry_id, registry_id);
 
   pkg.convert_registry_values(registry_id);  // pass the protocol convid
 
@@ -142,7 +142,7 @@ void DaikinX10A::process_frame_(daikin_package &pkg) {
   for (auto &registerEntry : registers) {
     if ((uint8_t)registerEntry.registryID != registry_id) continue;
     if (registerEntry.asString[0] == '\0') continue;
-    ESP_LOGI("ESPoeDaikin", "0x%02X | %s = %s", registry_id, registerEntry.label, registerEntry.asString);
+    if (debug_mode_) ESP_LOGI("ESPoeDaikin", "0x%02X | %s = %s", registry_id, registerEntry.label, registerEntry.asString);
 
     // AUTO-UPDATE DYNAMIC SENSORS for mode=1 registers
     // Try text sensor first, then numeric sensor (based on convid, the right one will exist)
@@ -156,7 +156,7 @@ void DaikinX10A::process_frame_(daikin_package &pkg) {
     count++;
   }
 
-  ESP_LOGI("ESPoeDaikin", "Decoded %d values for registry 0x%02X", count, registry_id);
+  if (debug_mode_) ESP_LOGI("ESPoeDaikin", "Decoded %d values for registry 0x%02X", count, registry_id);
 }
 //________________________________________________________________ process_frame_ end
 

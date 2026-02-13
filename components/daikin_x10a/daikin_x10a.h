@@ -33,7 +33,12 @@ class DaikinX10A : public uart::UARTDevice, public Component {
     void register_dynamic_text_sensor(const std::string& label, text_sensor::TextSensor *sens);
     bool update_text_sensor(const std::string& label, const std::string& value);
 
+    // Debug mode
+    void set_debug_mode(bool enabled) { debug_mode_ = enabled; }
+    bool get_debug_mode() const { return debug_mode_; }
+
  protected:
+  bool debug_mode_{false};
   std::vector<uint8_t> buffer_;
   uint8_t last_requested_registry_{0};
 
