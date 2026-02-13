@@ -16,7 +16,7 @@ CODEOWNERS = ["@local"]
 CONF_UART_ID = "uart_id"
 CONF_REGISTERS = "registers"
 
-# Convids that produce text output (based on convert_one_ in daikin_package.h)
+# Convids that produce text output (based on convert_one_ in daikin_x10a.cpp)
 TEXT_CONVIDS = {200, 201, 203, 204, 211, 217, 300, 301, 302, 303, 304, 305, 306, 307, 315, 316}
 
 REGISTER_SCHEMA = cv.Schema({

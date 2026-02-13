@@ -37,60 +37,36 @@ ESPHomePoeAlterma/
 │       ├── daikin_package.h   # Packet handling only (buffer, CRC, protocol parsing)
 │       ├── register_definitions.cpp  # Register struct definition
 │       ├── register_definitions.h    # Register struct + scan interval constant
-│       ├── manifest.json
-│       └── m5poe_user.yaml    # Extended configuration example
-├── m5poe.yaml                 # Base ESPHome configuration
+│       ├── __init__.py        # ESPHome Python codegen (sensor auto-creation)
+│       └── manifest.json
+├── m5poe.yaml                 # ESPHome configuration (hardware + registers)
 └── README.md                  # Detailed documentation
 ```
 
-### Configuration Files Relationship
+### Configuration
 
-**Two-tier configuration pattern:**
+**`m5poe.yaml`** is the single configuration file containing:
+- Hardware setup (UART, I2C, Ethernet, relays)
+- daikin_x10a component initialization with full register list
+- Mode and smart grid controls (template selects)
+- Debug mode switch
 
-1. **m5poe.yaml** - Base configuration
-   - Hardware setup (UART, I2C, Ethernet, relays)
-   - Basic daikin_x10a component initialization
-   - Template sensors for common readings
-   - Mode and smart grid controls
-
-2. **m5poe_user.yaml** - Extended configuration (in components/daikin_x10a/)
-   - Uses `packages:` to import base configuration from GitHub
-   - Extends with custom register definitions via `registers:` array
-   - Allows customization without modifying base config
-   - Example shows extensive register mapping (200+ registers)
-
-**Pattern example:**
+**Register configuration example (in m5poe.yaml):**
 ```yaml
-# m5poe_user.yaml structure
-esphome:
-  name: m5poe
-
-packages:
-  base: github://Dennis3321/ESPHomePoeAlterma/m5poe.yaml@main
-
-# Define which registers to read from heat pump
 daikin_x10a:
+  id: daikin_comp
   uart_id: daikin_uart
   mode: 1
   registers:
     # mode: 0 = read only, not visible in HA
-    - { mode: 0, registryID: 0x61, offset: 2, convid: 105, dataSize: 2, dataType: 1, label: "Internal calculation value" }
+    - { mode: 0, registryID: 0x61, offset: 2, convid: 105, dataSize: 2, dataType: 1, label: "Refrig. Temp. liquid side (R3T)" }
 
     # mode: 1 = read AND auto-create sensor in HA
     - { mode: 1, registryID: 0x61, offset: 10, convid: 105, dataSize: 2, dataType: 1, label: "DHW tank temp. (R5T)" }
-    - { mode: 1, registryID: 0x61, offset: 8, convid: 105, dataSize: 2, dataType: 1, label: "Inlet water temp.(R4T)" }
     # ... sensors with mode=1 automatically appear in Home Assistant!
 ```
 
 **No manual sensor definitions needed!** Sensors are auto-created for all `mode: 1` registers.
-
-**When to use which:**
-- Use `m5poe.yaml` directly for standard setup
-- Create custom `*_user.yaml` based on `m5poe_user.yaml` for:
-  - Different register selections
-  - Additional sensors not in base config
-  - Hardware variations
-  - Testing new register mappings
 
 **Visual flow:**
 ```
@@ -98,7 +74,7 @@ Heat Pump X10A Protocol
          ↓
 [daikin_x10a component reads via UART]
          ↓
-registers: array in m5poe_user.yaml
+registers: array in m5poe.yaml
   - { mode: 0, label: "..." }  ← Read but not exposed to HA
   - { mode: 1, label: "DHW tank temp. (R5T)" }  ← AUTO-CREATES SENSOR
          ↓
@@ -108,11 +84,9 @@ registers: array in m5poe_user.yaml
 ## Development Guidelines
 
 ### ESPHome Configuration
-- Base config: `m5poe.yaml` (hardware + basic sensors)
-- Extended config: `m5poe_user.yaml` (adds custom register definitions)
+- Config: `m5poe.yaml` (hardware setup, register definitions, controls)
 - Uses external_components to pull from this GitHub repository
 - Requires secrets file for API encryption key and OTA password
-- Supports `packages:` pattern for config inheritance and customization
 
 ### Custom Component (daikin_x10a)
 - Written in C++ following ESPHome component architecture
@@ -146,20 +120,6 @@ registers: array in m5poe_user.yaml
 id(r1).turn_off();
 id(r2).turn_off();
 // Then set new state
-```
-
-### Temperature Sensors
-All sensors follow this pattern:
-```yaml
-- platform: template
-  name: "Sensor Name"
-  id: sensor_id
-  unit_of_measurement: "°C"
-  device_class: temperature
-  lambda: |-
-    std::string val = id(daikin_comp).get_register_value("Register Name");
-    if (val.empty()) return NAN;
-    return atof(val.c_str());
 ```
 
 ## Important Notes
@@ -228,7 +188,7 @@ When modifying the custom component:
 ### Adding New Sensors
 To make a new sensor visible in Home Assistant, simply set `mode: 1` in the register definition:
 
-**Example in m5poe_user.yaml:**
+**Example in m5poe.yaml:**
 ```yaml
 daikin_x10a:
   uart_id: daikin_uart
@@ -255,10 +215,9 @@ daikin_x10a:
 2. Component auto-updates from GitHub on ESPHome compilation
 3. Can use local path instead of GitHub URL for testing
 
-### Creating Custom Register Configuration
-1. Copy `m5poe_user.yaml` as template
-2. Modify `registers:` array to add/remove register definitions
-3. Register fields:
+### Modifying Register Configuration
+1. Edit the `registers:` array in `m5poe.yaml`
+2. Register fields:
    - `mode`: **0** (read but don't show in HA) or **1** (read AND auto-create sensor in HA)
    - `registryID`: X10A register address (e.g., 0x61)
    - `offset`: Byte offset within register
@@ -266,13 +225,7 @@ daikin_x10a:
    - `dataSize`: Size in bytes
    - `dataType`: Type indicator (-1, 1, 2, etc.)
    - `label`: Human-readable name used as sensor name in HA - MUST be unique!
-4. Use `packages:` to inherit base hardware configuration
-
-**Dynamic Workflow (IMPLEMENTED):**
-- `mode: 0` = Read register but don't expose to HA (accessible via `get_register_value()`)
-- `mode: 1` = Read register AND automatically create sensor in HA
-- Simply change `mode: 0` to `mode: 1` → sensor appears in Home Assistant!
-- No manual template sensor definitions needed
+3. Simply change `mode: 0` to `mode: 1` → sensor appears in Home Assistant!
 
 ### Debug Mode
 The component has a runtime debug mode controlled via a Home Assistant switch ("Daikin Debug Mode"):
