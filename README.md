@@ -29,7 +29,7 @@
 * set the operation mode of your heat pump \[off\]/\[heat\]/\[cool\] from Home Assistant  
 * set the smartgrid feature from Home Assistant
 
-![][image1]
+![][image7]
 
 # Features; {#features;}
 
