@@ -129,3 +129,5 @@ Support for other devices/other languages/support for the Daikin S protocol.
 [image5]: images/image5.png
 
 [image6]: images/image6.png
+
+[image7]: images/image7.png
